@@ -3,12 +3,12 @@ import {
   Controller,
   Delete,
   Get,
-  NotFoundException,
   Param,
   Post,
   Put,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
+import { ArticlesModel } from './entities/articles.entity';
 
 @Controller('articles')
 export class ArticlesController {
@@ -30,21 +30,40 @@ export class ArticlesController {
   // POST /articles
   @Post()
   postArticle(
-    @Body('author') author: string,
+    @Body('authorId') authorId: number,
     @Body('title') title: string,
-    @Body('content') content: string,
+    @Body('contents') contents: string,
+    @Body('description') description: string,
+    @Body('isPrivate') isPrivate: boolean,
+    @Body('isPublish') isPublish: boolean,
   ) {
-    return this.articlesService.createArticle(author, title, content);
+    return this.articlesService.createArticle(
+      authorId,
+      title,
+      description,
+      contents,
+      isPrivate,
+      isPublish,
+    );
   }
 
   @Put(':id')
   putArticle(
-    @Param('id') id: string,
-    @Body('author') author?: string,
+    @Param('id') id: number,
     @Body('title') title?: string,
-    @Body('content') content?: string,
+    @Body('contents') contents?: string,
+    @Body('description') description?: string,
+    @Body('isPrivate') isPrivate?: boolean,
+    @Body('isPublish') isPublish?: boolean,
   ) {
-    return this.articlesService.updateArticle(+id, author, title, content);
+    return this.articlesService.updateArticle(
+      id,
+      title,
+      contents,
+      description,
+      isPrivate,
+      isPublish,
+    );
   }
   @Delete(':id')
   deleteArticle(@Param('id') id: string) {

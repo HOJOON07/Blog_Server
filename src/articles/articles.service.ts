@@ -1,119 +1,120 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-
-export interface ArticlesModel {
-  id: number;
-  author: string;
-  title: string;
-  content: string;
-  likeCount: number;
-  commentCount: number;
-}
-
-let articles: ArticlesModel[] = [
-  {
-    id: 1,
-    author: 'newjeans_official',
-    title: '뉴진스 민지',
-    content: '메이크업 고치고 있는 민지',
-    likeCount: 999,
-    commentCount: 10000,
-  },
-  {
-    id: 2,
-    author: 'newjeans_official',
-    title: '뉴진스 해린',
-    content: '메이크업 고치고 있는 해린',
-    likeCount: 999,
-    commentCount: 10000,
-  },
-  {
-    id: 3,
-    author: 'newjeans_official',
-    title: '뉴진스 다니엘',
-    content: '메이크업 고치고 있는 다니엘',
-    likeCount: 999,
-    commentCount: 10000,
-  },
-  {
-    id: 4,
-    author: 'blackpink_official',
-    title: '블랙핑크 로제',
-    content: '메이크업 고치고 있는 로제',
-    likeCount: 999,
-    commentCount: 10000,
-  },
-];
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
+import { ArticlesModel } from './entities/articles.entity';
 
 @Injectable()
 export class ArticlesService {
-  getAllArticles() {
-    return articles;
+  constructor(
+    @InjectRepository(ArticlesModel)
+    private readonly articlesRepository: Repository<ArticlesModel>,
+  ) {}
+  async getAllArticles() {
+    return this.articlesRepository.find({
+      // author의 대한 정보도 같이
+      relations: ['author'],
+    });
   }
 
-  getArticleById(id: number) {
-    const article = articles.find((article) => article.id === +id);
+  async getArticleById(id: number) {
+    const article = await this.articlesRepository.findOne({
+      where: {
+        // 입력받은 id가 데이터베이스에 있는 id와 같은 값인지.
+        id: id,
+      },
+      // author의 대한 정보도 같이
+      relations: ['author'],
+    });
 
-    if (article === undefined) {
+    if (!article) {
       throw new NotFoundException();
     }
 
     return article;
   }
 
-  createArticle(author: string, title: string, content: string) {
-    const article: ArticlesModel = {
-      id: articles[articles.length - 1].id + 1,
-      author,
+  async createArticle(
+    authorId: number,
+    title: string,
+    description: string,
+    contents: string,
+    isPrivate: boolean,
+    isPublish: boolean,
+  ) {
+    //create 메서드는 동기적으로 동작함.
+    const article = this.articlesRepository.create({
+      author: {
+        id: authorId,
+      },
       title,
-      content,
-      likeCount: 0,
-      commentCount: 0,
-    };
-
-    articles = [...articles, article];
+      contents,
+      description,
+      isPrivate,
+      isPublish,
+    });
+    // save는 만든 아티클을 저장할 수 있도록
+    const newArticle = await this.articlesRepository.save(article);
 
     return article;
   }
 
-  updateArticle(
-    articleId: number,
-    author: string,
+  async updateArticle(
+    id: number,
     title: string,
-    content: string,
+    contents: string,
+    description: string,
+    isPrivate: boolean,
+    isPublish: boolean,
   ) {
-    const article = articles.find((article) => article.id == articleId);
+    // save의 두가 기능
+    // 1) 만약에 데이터가 존재하지 않는다면 (id)가 없다면 새로 생성한다.
+    // 2) 만약에 데이터가 존재한다면, (같은 id값) 존재하던 값을 업데이트한다.
+
+    const article = await this.articlesRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
 
     if (article == undefined) {
       throw new NotFoundException();
-    }
-
-    if (author) {
-      article.author = author;
     }
 
     if (title) {
       article.title = title;
     }
 
-    if (content) {
-      article.content = content;
+    if (contents) {
+      article.contents = contents;
+    }
+    if (description) {
+      article.description = description;
     }
 
-    articles = articles.map((prevArticle) =>
-      prevArticle.id === articleId ? article : prevArticle,
-    );
-    return article;
+    if (isPrivate) {
+      article.isPrivate = isPrivate;
+    }
+
+    if (isPublish) {
+      article.isPublish = isPublish;
+    }
+
+    const newArticle = await this.articlesRepository.save(article);
+
+    return newArticle;
   }
 
-  deleteArticle(articleId: number) {
-    const article = articles.filter((article) => article.id === articleId);
+  async deleteArticle(articleId: number) {
+    const article = await this.articlesRepository.findOne({
+      where: {
+        id: articleId,
+      },
+    });
 
-    if (article === undefined) {
+    if (article == undefined) {
       throw new NotFoundException();
     }
 
-    articles = articles.filter((article) => article.id !== articleId);
-
-    return articleId;
+    await this.articlesRepository.delete(articleId);
   }
 }
