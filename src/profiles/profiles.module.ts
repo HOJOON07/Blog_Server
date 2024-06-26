@@ -6,6 +6,7 @@ import { ProfileModel } from './entities/profiles.entity';
 
 @Module({
   imports: [TypeOrmModule.forFeature([ProfileModel])],
+  exports: [ProfilesService],
   controllers: [ProfilesController],
   providers: [ProfilesService],
 })
