@@ -5,9 +5,7 @@ import { ArticlesModule } from './articles/articles.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { ArticlesModel } from './articles/entities/articles.entity';
 import { UsersModule } from './users/users.module';
-import { ProfilesModule } from './profiles/profiles.module';
 import { UserModel } from './users/entities/users.entity';
-import { ProfileModel } from './profiles/entities/profiles.entity';
 import { AuthModule } from './auth/auth.module';
 
 @Module({
@@ -19,12 +17,11 @@ import { AuthModule } from './auth/auth.module';
       username: 'postgres',
       password: 'postgres',
       database: 'postgres',
-      entities: [ArticlesModel, UserModel, ProfileModel],
+      entities: [ArticlesModel, UserModel],
       synchronize: true,
     }),
     ArticlesModule,
     UsersModule,
-    ProfilesModule,
     AuthModule,
   ],
   controllers: [AppController],

@@ -1,4 +1,4 @@
-import { ProfileModel } from 'src/profiles/entities/profiles.entity';
+import { UserModel } from 'src/users/entities/users.entity';
 import { Column, Entity, ManyToOne, PrimaryGeneratedColumn } from 'typeorm';
 
 @Entity()
@@ -6,10 +6,10 @@ export class ArticlesModel {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => ProfileModel, (profile) => profile.articles, {
+  @ManyToOne(() => UserModel, (user) => user.articles, {
     nullable: false,
   })
-  author: ProfileModel;
+  author: UserModel;
 
   @Column()
   title: string;

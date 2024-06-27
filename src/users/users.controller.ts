@@ -12,17 +12,15 @@ export class UsersController {
   constructor(private readonly usersService: UsersService) {}
   @Post()
   postCreateUser(
-    // @Body('email') email: string,
-    // @Body('password') password: string,
-    // @Body('name') name: string,
-    @Body() authDTO: AuthDTO,
+    @Body('email') email: string,
+    @Body('password') password: string,
+    @Body('devName') devName: string,
   ) {
-    const { name, email, password } = authDTO;
-    return this.usersService.createUser(email, password, name);
+    return this.usersService.createUser(email, password, devName);
   }
 
   @Get()
-  getUsers() {
-    return this.usersService.getAllUsers();
+  getAllUser() {
+    return this.usersService.getAllUser();
   }
 }

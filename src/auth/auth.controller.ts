@@ -1,25 +1,53 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Headers } from '@nestjs/common';
 import { AuthService } from './auth.service';
+import { UserModel } from 'src/users/entities/users.entity';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Post('token/access')
+  postTokenAccess(@Headers('authorization') rawToken: string) {
+    const token = this.authService.extractTokenFromHeader(rawToken, true);
+
+    // {accessToken: {token}}
+
+    const newToken = this.authService.rotateToken(token, false);
+
+    return {
+      accessToken: newToken,
+    };
+  }
+
+  @Post('token/refresh')
+  postTokenRefresh(@Headers('authorization') rawToken: string) {
+    const token = this.authService.extractTokenFromHeader(rawToken, true);
+
+    // {refreshToken: {token}}
+
+    const newToken = this.authService.rotateToken(token, true);
+
+    return {
+      refreshToken: newToken,
+    };
+  }
+
   @Post('login/email')
-  loginEmail(@Body('email') email: string, @Body('password') password: string) {
-    return this.authService.loginWithEmail({
-      email,
-      password,
-    });
+  postLoginEmail(@Headers('authorization') rawToken: string) {
+    // email:password -> base64
+    // asdsadasdsa = > email:password
+    const token = this.authService.extractTokenFromHeader(rawToken, false);
+
+    const credentials = this.authService.decodeBasicToken(token);
+    return this.authService.loginWithEmail(credentials);
   }
 
   @Post('register/email')
-  registerEmail(
-    @Body('name') name: string,
+  postRegisterEmail(
     @Body('email') email: string,
     @Body('password') password: string,
+    @Body('devName') devName: string,
   ) {
-    const userEmailAndPassword = { email, password };
-    return this.authService.registerWithEmail(userEmailAndPassword, name);
+    return this.authService.registerWithEmail({ email, password, devName });
   }
 }
