@@ -1,12 +1,32 @@
-import { Body, Controller, Get, Post, Headers } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Headers,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { UserModel } from 'src/users/entities/users.entity';
+import {
+  MaxLengthPipe,
+  MinLengthPipe,
+  PasswordPipe,
+} from './pipe/password.pipe';
+import { BasciTokenGuard } from './guard/basic-token.guard';
+import {
+  AccessTokenGuard,
+  RefreshTokenGuard,
+} from './guard/bearer-token.guard';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('token/access')
+  @UseGuards(RefreshTokenGuard)
   postTokenAccess(@Headers('authorization') rawToken: string) {
     const token = this.authService.extractTokenFromHeader(rawToken, true);
 
@@ -20,6 +40,7 @@ export class AuthController {
   }
 
   @Post('token/refresh')
+  @UseGuards(RefreshTokenGuard)
   postTokenRefresh(@Headers('authorization') rawToken: string) {
     const token = this.authService.extractTokenFromHeader(rawToken, true);
 
@@ -33,7 +54,8 @@ export class AuthController {
   }
 
   @Post('login/email')
-  postLoginEmail(@Headers('authorization') rawToken: string) {
+  @UseGuards(BasciTokenGuard)
+  postLoginEmail(@Headers('authorization') rawToken: string, @Request() req) {
     // email:password -> base64
     // asdsadasdsa = > email:password
     const token = this.authService.extractTokenFromHeader(rawToken, false);
@@ -43,11 +65,7 @@ export class AuthController {
   }
 
   @Post('register/email')
-  postRegisterEmail(
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Body('devName') devName: string,
-  ) {
-    return this.authService.registerWithEmail({ email, password, devName });
+  postRegisterEmail(@Body() body: RegisterUserDto) {
+    return this.authService.registerWithEmail(body);
   }
 }

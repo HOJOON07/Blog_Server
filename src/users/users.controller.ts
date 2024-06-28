@@ -23,4 +23,9 @@ export class UsersController {
   getAllUser() {
     return this.usersService.getAllUser();
   }
+
+  @Get('email')
+  getUserByEmailTest() {
+    return this.usersService.getUserByEmail('token10@naver.com');
+  }
 }

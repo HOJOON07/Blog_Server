@@ -2,6 +2,12 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ArticlesModel } from './entities/articles.entity';
+import { CreateArticleDto } from './dto/create-article-dto';
+import {
+  ArticlePrivateStateEnums,
+  ArticlePublishStateEnums,
+} from './const/article-state';
+import { UpdateArticleDto } from './dto/update-article-dto';
 
 @Injectable()
 export class ArticlesService {
@@ -20,7 +26,9 @@ export class ArticlesService {
     const article = await this.articlesRepository.findOne({
       where: {
         // 입력받은 id가 데이터베이스에 있는 id와 같은 값인지.
-        id: id,
+        author: {
+          id: id,
+        },
       },
       // author의 대한 정보도 같이
       relations: ['author'],
@@ -33,24 +41,13 @@ export class ArticlesService {
     return article;
   }
 
-  async createArticle(
-    authorId: number,
-    title: string,
-    description: string,
-    contents: string,
-    isPrivate: boolean,
-    isPublish: boolean,
-  ) {
+  async createArticle(authorId: number, articleDto: CreateArticleDto) {
     //create 메서드는 동기적으로 동작함.
     const article = this.articlesRepository.create({
       author: {
         id: authorId,
       },
-      title,
-      contents,
-      description,
-      isPrivate,
-      isPublish,
+      ...articleDto,
     });
     // save는 만든 아티클을 저장할 수 있도록
     const newArticle = await this.articlesRepository.save(article);
@@ -58,14 +55,7 @@ export class ArticlesService {
     return article;
   }
 
-  async updateArticle(
-    id: number,
-    title: string,
-    contents: string,
-    description: string,
-    isPrivate: boolean,
-    isPublish: boolean,
-  ) {
+  async updateArticle(id: number, updateArticleDto: UpdateArticleDto) {
     // save의 두가 기능
     // 1) 만약에 데이터가 존재하지 않는다면 (id)가 없다면 새로 생성한다.
     // 2) 만약에 데이터가 존재한다면, (같은 id값) 존재하던 값을 업데이트한다.
@@ -79,22 +69,20 @@ export class ArticlesService {
     if (article == undefined) {
       throw new NotFoundException();
     }
-
+    const { title, contents, description, isPrivate, isPublish } =
+      updateArticleDto;
     if (title) {
       article.title = title;
     }
-
     if (contents) {
       article.contents = contents;
     }
     if (description) {
       article.description = description;
     }
-
     if (isPrivate) {
       article.isPrivate = isPrivate;
     }
-
     if (isPublish) {
       article.isPublish = isPublish;
     }

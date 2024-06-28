@@ -4,9 +4,7 @@ import { UserModel } from 'src/users/entities/users.entity';
 import { HASH_ROUNDS, JWT_Expires_Time, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bycrypt from 'bcrypt';
-import e from 'express';
-import { decode } from 'punycode';
-import { sign } from 'crypto';
+import { RegisterUserDto } from './dto/register-user.dto';
 
 @Injectable()
 export class AuthService {
@@ -86,9 +84,13 @@ export class AuthService {
   }
   // 토큰 검증
   verifyToken(token: string) {
-    return this.jwtService.verify(token, {
-      secret: JWT_SECRET,
-    });
+    try {
+      return this.jwtService.verify(token, {
+        secret: JWT_SECRET,
+      });
+    } catch (e) {
+      throw new UnauthorizedException('토큰이 만료됐거나 잘못된 토큰입니다.');
+    }
   }
   // 새로 발급
   rotateToken(token: string, isRefreshToken: boolean) {
@@ -144,10 +146,14 @@ export class AuthService {
 
   // signToken에 들어갈 정보
   // 1) devName 2) sub -> 사용자의 id 3) type:"access | refresh"
-  signToken(user: Pick<UserModel, 'id' | 'devName'>, isRefreshToken: boolean) {
+  signToken(
+    user: Pick<UserModel, 'id' | 'devName' | 'email'>,
+    isRefreshToken: boolean,
+  ) {
     const payload = {
       sub: user.id,
       devName: user.devName,
+      email: user.email,
       type: isRefreshToken ? 'refresh' : 'access',
     };
 
@@ -160,9 +166,9 @@ export class AuthService {
     });
   }
 
-  loginUser(user: Pick<UserModel, 'id' | 'devName'>) {
+  loginUser(user: Pick<UserModel, 'id' | 'devName' | 'email'>) {
     return {
-      acessToken: this.signToken(user, false),
+      accessToken: this.signToken(user, false),
       refreshToken: this.signToken(user, true),
     };
   }
@@ -194,9 +200,7 @@ export class AuthService {
     return this.loginUser(existingUser);
   }
 
-  async registerWithEmail(
-    user: Pick<UserModel, 'email' | 'password' | 'devName'>,
-  ) {
+  async registerWithEmail(user: RegisterUserDto) {
     const hashPassWord = await bycrypt.hash(user.password, HASH_ROUNDS);
 
     const newUser = await this.userService.createUser(
