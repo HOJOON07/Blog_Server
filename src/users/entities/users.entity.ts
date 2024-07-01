@@ -24,7 +24,7 @@ export class UserModel extends BaseModel {
 
   @Column()
   @IsString({ message: stringValidationMessage })
-  @Length(8, 15, {
+  @Length(8, 16, {
     message: lengthValidationMessage,
   })
   /**
@@ -50,7 +50,7 @@ export class UserModel extends BaseModel {
     unique: true,
   })
   @IsString()
-  @Length(2, 10, { message: lengthValidationMessage })
+  @Length(2, 15, { message: lengthValidationMessage })
   devName: string;
 
   @Column({

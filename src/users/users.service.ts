@@ -57,4 +57,20 @@ export class UsersService {
   async getAllUser() {
     return await this.userRepository.find({});
   }
+
+  async findDevWorldName(devName: string) {
+    return await this.userRepository.exists({
+      where: {
+        devName,
+      },
+    });
+  }
+
+  async findEmail(email: string) {
+    return await this.userRepository.exists({
+      where: {
+        email,
+      },
+    });
+  }
 }

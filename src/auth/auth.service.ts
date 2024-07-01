@@ -1,10 +1,15 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserModel } from 'src/users/entities/users.entity';
 import { HASH_ROUNDS, JWT_Expires_Time, JWT_SECRET } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
-import * as bycrypt from 'bcrypt';
+import * as bcrypt from 'bcrypt';
 import { RegisterUserDto } from './dto/register-user.dto';
+import { ChildEntity } from 'typeorm';
 
 @Injectable()
 export class AuthService {
@@ -182,16 +187,39 @@ export class AuthService {
       throw new UnauthorizedException('존재하지 않는 사용자입니다.');
     }
 
-    const passwordOK = await bycrypt.compare(
+    const passwordOK = await bcrypt.compare(
       user.password,
+      // ->  qwer1234
       existingUser.password,
+      // -> $2b$10$n7ri65iRy7fHr.KHpiL8suk7hyxydGltXV6Hjj1rf7DJ2VTBmFBOO
     );
 
     if (!passwordOK) {
-      throw new UnauthorizedException('사용자를 찾을 수 없습니다.');
+      throw new UnauthorizedException(
+        '입력하신 사용자 정보를 찾을 수 없습니다.',
+      );
     }
 
     return existingUser;
+
+    /**
+    * UserModel {
+    id: 3,
+    createdAt: 2024-06-27T18:50:26.597Z,
+    updatedAt: 2024-06-27T18:50:26.597Z,
+    email: 'ghwns107@naver.com',
+    password: '$2b$10$n7ri65iRy7fHr.KHpiL8suk7hyxydGltXV6Hjj1rf7DJ2VTBmFBOO',
+    devName: 'qwer1234',
+    role: 'user',
+    position: null,
+    bio: null,
+    address: null,
+    github: null,
+    linkedin: null,
+    instagram: null,
+    socialEtc: null
+    }
+     */
   }
 
   async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
@@ -201,11 +229,31 @@ export class AuthService {
   }
 
   async registerWithEmail(user: RegisterUserDto) {
-    const hashPassWord = await bycrypt.hash(user.password, HASH_ROUNDS);
+    const hashPassword = await bcrypt.hash(user.password, HASH_ROUNDS);
+    const hashConfirmPassword = await bcrypt.hash(
+      user.passwordConfirm,
+      HASH_ROUNDS,
+    );
+
+    const confirmPass = await bcrypt.compare(
+      user.passwordConfirm,
+      hashPassword,
+    );
+
+    const confirmPass2 = await bcrypt.compare(
+      user.password,
+      hashConfirmPassword,
+    );
+
+    if (!confirmPass && !confirmPass2) {
+      throw new BadRequestException(
+        '사용자가 입력한 비밀번호와 확인 비밀번호가 일치하지 않습니다.',
+      );
+    }
 
     const newUser = await this.userService.createUser(
       user.email,
-      hashPassWord,
+      hashPassword,
       user.devName,
     );
 

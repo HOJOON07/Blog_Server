@@ -1,5 +1,6 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UsePipes } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { PasswordPipe } from 'src/auth/pipe/password.pipe';
 
 type AuthDTO = {
   email: string;
@@ -10,14 +11,14 @@ type AuthDTO = {
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
-  @Post()
-  postCreateUser(
-    @Body('email') email: string,
-    @Body('password') password: string,
-    @Body('devName') devName: string,
-  ) {
-    return this.usersService.createUser(email, password, devName);
-  }
+  // @Post()
+  // postCreateUser(
+  //   @Body('email') email: string,
+  //   @Body('password') password: string,
+  //   @Body('devName') devName: string,
+  // ) {
+  //   return this.usersService.createUser(email, password, devName);
+  // }
 
   @Get()
   /**
@@ -26,10 +27,5 @@ export class UsersController {
    */
   getAllUser() {
     return this.usersService.getAllUser();
-  }
-
-  @Get('email')
-  getUserByEmailTest() {
-    return this.usersService.getUserByEmail('token10@naver.com');
   }
 }

@@ -9,6 +9,8 @@ import { UserModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
+import { MailModule } from './mail/mail.module';
+import { AuthMailModel } from './mail/entities/auth-email';
 
 @Module({
   imports: [
@@ -19,13 +21,14 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
       username: 'postgres',
       password: 'postgres',
       database: 'postgres',
-      entities: [ArticlesModel, UserModel],
+      entities: [ArticlesModel, UserModel, AuthMailModel],
       synchronize: true,
     }),
     ArticlesModule,
     UsersModule,
     AuthModule,
     CommonModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [

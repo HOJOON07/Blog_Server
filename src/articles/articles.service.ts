@@ -8,6 +8,7 @@ import {
   ArticlePublishStateEnums,
 } from './const/article-state';
 import { UpdateArticleDto } from './dto/update-article-dto';
+import { retry } from 'rxjs';
 
 @Injectable()
 export class ArticlesService {
@@ -35,6 +36,7 @@ export class ArticlesService {
     });
 
     if (!article) {
+      // return false;
       throw new NotFoundException();
     }
 
