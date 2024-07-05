@@ -22,7 +22,7 @@ export class UserModel extends BaseModel {
   @IsEmail({}, { message: EmailValidationMessage })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   @IsString({ message: stringValidationMessage })
   @Length(8, 16, {
     message: lengthValidationMessage,
@@ -48,6 +48,7 @@ export class UserModel extends BaseModel {
   @Column({
     length: 15,
     unique: true,
+    nullable: true,
   })
   @IsString()
   @Length(2, 15, { message: lengthValidationMessage })
@@ -76,7 +77,7 @@ export class UserModel extends BaseModel {
   @Column({
     nullable: true,
   })
-  address: string;
+  location: string;
 
   @Column({
     nullable: true,
@@ -97,6 +98,11 @@ export class UserModel extends BaseModel {
     nullable: true,
   })
   socialEtc: string;
+
+  @Column({
+    nullable: true,
+  })
+  company: string;
 
   // 존재하지 않는 프로퍼티를 만들어서 보내주고 싶다면 expose를 사용해서 보내줄 수 있다.
   // @Expose()

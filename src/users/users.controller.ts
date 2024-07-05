@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UsePipes } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Post, UsePipes } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { PasswordPipe } from 'src/auth/pipe/password.pipe';
 
@@ -27,5 +27,10 @@ export class UsersController {
    */
   getAllUser() {
     return this.usersService.getAllUser();
+  }
+
+  @Delete('delete')
+  deleteUser(@Body('email') email: string) {
+    return this.usersService.deleteUser(email);
   }
 }

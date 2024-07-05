@@ -1,15 +1,32 @@
 import {
+  ENV_GITHUB_CLIENT_ID,
+  ENV_GITHUB_CLIENT_SECRET,
+  ENV_JWT_HASH_ROUNDS,
+  ENV_JWT_SECRET,
+} from './../common/const/env-keys.const';
+import {
   BadRequestException,
   Injectable,
+  InternalServerErrorException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserModel } from 'src/users/entities/users.entity';
-import { HASH_ROUNDS, JWT_Expires_Time, JWT_SECRET } from './const/auth.const';
+import { JWT_Expires_Time } from './const/auth.const';
 import { UsersService } from 'src/users/users.service';
 import * as bcrypt from 'bcrypt';
-import { RegisterUserDto } from './dto/register-user.dto';
+import {
+  RegisterGithubUserDto,
+  RegisterUserDto,
+} from './dto/register-user.dto';
 import { ChildEntity } from 'typeorm';
+import {
+  GithubBasicInfoUserDto,
+  GithubCodeDto,
+} from './dto/register-github.dto';
+import axios, { AxiosResponse } from 'axios';
+import { ConfigService } from '@nestjs/config';
+import handleAxiosError from 'src/common/axios-error/handle-error';
 
 @Injectable()
 export class AuthService {
@@ -91,7 +108,7 @@ export class AuthService {
   verifyToken(token: string) {
     try {
       return this.jwtService.verify(token, {
-        secret: JWT_SECRET,
+        secret: this.configService.get<string>(ENV_JWT_SECRET),
       });
     } catch (e) {
       throw new UnauthorizedException('토큰이 만료됐거나 잘못된 토큰입니다.');
@@ -100,7 +117,7 @@ export class AuthService {
   // 새로 발급
   rotateToken(token: string, isRefreshToken: boolean) {
     const decoded = this.jwtService.verify(token, {
-      secret: JWT_SECRET,
+      secret: this.configService.get<string>(ENV_JWT_SECRET),
     });
     // payload에는 현재 sub-> id, email, type
     if (decoded.type !== 'refresh') {
@@ -147,6 +164,7 @@ export class AuthService {
   constructor(
     private readonly jwtService: JwtService,
     private readonly userService: UsersService,
+    private readonly configService: ConfigService,
   ) {}
 
   // signToken에 들어갈 정보
@@ -163,7 +181,7 @@ export class AuthService {
     };
 
     return this.jwtService.sign(payload, {
-      secret: JWT_SECRET,
+      secret: this.configService.get<string>(ENV_JWT_SECRET),
       // seconds
       expiresIn: isRefreshToken
         ? JWT_Expires_Time.refresh
@@ -176,6 +194,21 @@ export class AuthService {
       accessToken: this.signToken(user, false),
       refreshToken: this.signToken(user, true),
     };
+  }
+
+  // OAuthLoginUser(user:Pick<GithubBasicInfoUserDto,"">)
+
+  async authenticateWithEmailForGithubOAuth(user: RegisterGithubUserDto) {
+    const existingUser = await this.userService.getUserByEmail(user.email);
+    console.log(existingUser);
+
+    if (!existingUser) {
+      //없으면 회원가입
+      const newUser = await this.userService.createGithubUser(user);
+      return newUser;
+    }
+
+    return existingUser;
   }
 
   async authenticateWithEmailAndPassword(
@@ -222,17 +255,36 @@ export class AuthService {
      */
   }
 
+  /**
+   *
+   * 깃허브로 소셜로그인할 때 유저의 플로우
+   * 1. 프론트엔드에서 깃허브 로그인 버튼을 누름
+   * 2. 백엔드에서는 유저의 정보를 돌려줌
+   * 3. 돌려받은 유저의 정보를 가지고 유저를 찾아야 한다. (가입이 되어있는지 없는지)
+   * 4. 가입되어있다면 로그인
+   * 5. 가입이 안되어있다면 회원가입 후 로그인
+   */
+
   async loginWithEmail(user: Pick<UserModel, 'email' | 'password'>) {
     const existingUser = await this.authenticateWithEmailAndPassword(user);
 
     return this.loginUser(existingUser);
   }
+  //
+  async loginWithGithubOAuth(user: RegisterGithubUserDto) {
+    const existingUser = await this.authenticateWithEmailForGithubOAuth(user);
 
+    return this.loginUser(existingUser);
+  }
+  //
   async registerWithEmail(user: RegisterUserDto) {
-    const hashPassword = await bcrypt.hash(user.password, HASH_ROUNDS);
+    const hash_rounds = parseInt(
+      this.configService.get<string>(ENV_JWT_HASH_ROUNDS),
+    );
+    const hashPassword = await bcrypt.hash(user.password, hash_rounds);
     const hashConfirmPassword = await bcrypt.hash(
       user.passwordConfirm,
-      HASH_ROUNDS,
+      hash_rounds,
     );
 
     const confirmPass = await bcrypt.compare(
@@ -258,5 +310,113 @@ export class AuthService {
     );
 
     return this.loginUser(newUser);
+  }
+
+  async getGithubAccessToken(githubcode: string) {
+    const getTokenUrl: string = 'https://github.com/login/oauth/access_token';
+    const request = {
+      code: githubcode,
+      client_id: this.configService.get<string>(ENV_GITHUB_CLIENT_ID),
+      client_secret: this.configService.get<string>(ENV_GITHUB_CLIENT_SECRET),
+    };
+    try {
+      const response: AxiosResponse = await axios.post(getTokenUrl, request, {
+        headers: {
+          accept: 'application/json',
+        },
+      });
+      if (response.data.error) {
+        throw new UnauthorizedException('깃허브 인증을 실패했습니다.');
+      }
+      if (!response.data.access_token) {
+        throw new InternalServerErrorException(
+          '액세스 토큰이 반환되지 않았습니다.',
+        );
+      }
+
+      return response.data.access_token;
+    } catch (error) {
+      console.error(
+        'GitHub Access Token을 받아오는 과정에서 에러가 발생했습니다:',
+        error,
+      );
+      handleAxiosError(error);
+    }
+  }
+
+  async getGithubBasicInfo(githubCode: string) {
+    try {
+      const access_token = await this.getGithubAccessToken(githubCode);
+
+      const getBasicInfoUserUrl: string = 'https://api.github.com/user';
+      const response = await axios.get(getBasicInfoUserUrl, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      });
+
+      const { login, html_url, location, bio, company, blog } = response.data;
+      const basicGithubUserInfo: GithubBasicInfoUserDto = {
+        devName: login,
+        github: html_url,
+        location,
+        bio,
+        company,
+        socialEtc: blog,
+      };
+      return { ...basicGithubUserInfo, access_token };
+    } catch (error) {
+      console.error(
+        'GitHub 기본 정보를 가져오는 과정에서 에러가 발생했습니다:',
+        error,
+      );
+      handleAxiosError(error);
+    }
+  }
+  async getGithubUserEmail(access_token: string) {
+    const getUserEmailUrl = 'https://api.github.com/user/emails';
+    try {
+      const response = await axios.get(getUserEmailUrl, {
+        headers: {
+          Authorization: `token ${access_token}`,
+        },
+      });
+      const email = response.data
+        .filter((email) => email.primary && email.verified)
+        .map((data) => data.email); // 수정: 이메일 객체에서 이메일 주소만 추출
+      return email[0];
+    } catch (error) {
+      console.error('GitHub 이메일 정보를 가져오는데 실패했습니다.', error);
+      handleAxiosError(error);
+    }
+  }
+
+  async OAuthGithubLogin(githubcode: GithubCodeDto) {
+    try {
+      const { code } = githubcode;
+      const {
+        devName,
+        github,
+        location,
+        bio,
+        company,
+        socialEtc,
+        access_token,
+      } = await this.getGithubBasicInfo(code);
+      const email = await this.getGithubUserEmail(access_token);
+
+      return {
+        devName,
+        github,
+        location,
+        bio,
+        company,
+        socialEtc,
+        email,
+      };
+    } catch (error) {
+      console.error('GitHub OAuth 로그인 과정에서 에러가 발생했습니다:', error);
+      handleAxiosError(error);
+    }
   }
 }

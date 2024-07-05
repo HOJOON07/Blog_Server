@@ -11,6 +11,7 @@ import { CommonModule } from './common/common.module';
 import { APP_INTERCEPTOR } from '@nestjs/core';
 import { MailModule } from './mail/mail.module';
 import { AuthMailModel } from './mail/entities/auth-email';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
   imports: [
@@ -29,6 +30,9 @@ import { AuthMailModel } from './mail/entities/auth-email';
     AuthModule,
     CommonModule,
     MailModule,
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
   ],
   controllers: [AppController],
   providers: [

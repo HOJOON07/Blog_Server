@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post } from '@nestjs/common';
 import { MailService } from './mail.service';
 
 @Controller('mail')
@@ -7,7 +7,16 @@ export class MailController {
 
   @Post('send')
   async postCreateMailData(@Body() { email }: { email: string }) {
-    return this.mailService.createAuthEmail(email);
+    await this.mailService.createAuthEmail(email);
+    return email;
+  }
+
+  @Post('verify')
+  async postAuthNumberVerify(
+    @Body() { email, authNumber }: { email: string; authNumber: string },
+  ) {
+    await this.mailService.authNumberAndEmailVerify(email, authNumber);
+    return { message: '이메일 인증이 확인되었습니다.' };
   }
 
   @Get()

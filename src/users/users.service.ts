@@ -6,6 +6,8 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from './entities/users.entity';
 import { Repository } from 'typeorm';
+import { GithubBasicInfoUserDto } from 'src/auth/dto/register-github.dto';
+import { RegisterGithubUserDto } from 'src/auth/dto/register-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -72,5 +74,46 @@ export class UsersService {
         email,
       },
     });
+  }
+
+  async deleteUser(email: string) {
+    const user = await this.userRepository.findOne({
+      where: {
+        email,
+      },
+    });
+    const result = await this.userRepository.remove(user);
+
+    return result;
+  }
+
+  async createGithubUser(user: RegisterGithubUserDto) {
+    const { email, devName, ...rest } = user;
+    // 주석 처리 이유. 이미 누군가 일반유저로 회원가입을 했고 사용하는 이름이 깃허브에서 가져온 이름과 같다면? 에러를 뱉는다.
+
+    // const existingProfileName = await this.userRepository.exists({
+    //   where: {
+    //     devName: user.devName,
+    //   },
+    // });
+
+    // if (existingProfileName) {
+    //   throw new BadGatewayException('이미 존재하는 데브월드 이름입니다.');
+    // }
+    const existingEmail = await this.userRepository.exists({
+      where: {
+        email: user.email,
+      },
+    });
+
+    if (existingEmail) {
+      throw new BadRequestException('이미 존재하는 이메일 입니다.');
+    }
+
+    const newUser = this.userRepository.create({
+      email,
+      ...rest,
+    });
+    return await this.userRepository.save(newUser);
   }
 }

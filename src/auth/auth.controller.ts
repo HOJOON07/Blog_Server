@@ -6,12 +6,18 @@ import {
   Headers,
   UseGuards,
   Request,
+  Res,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
 import { BasciTokenGuard } from './guard/basic-token.guard';
 import { RefreshTokenGuard } from './guard/bearer-token.guard';
-import { RegisterUserDto } from './dto/register-user.dto';
+import {
+  RegisterGithubUserDto,
+  RegisterUserDto,
+} from './dto/register-user.dto';
+import { Response } from 'express';
+import { GithubCodeDto } from './dto/register-github.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -47,7 +53,11 @@ export class AuthController {
 
   @Post('login/email')
   @UseGuards(BasciTokenGuard)
-  postLoginEmail(@Headers('authorization') rawToken: string, @Request() req) {
+  async postLoginEmail(
+    @Headers('authorization') rawToken: string,
+    @Request() req,
+    // @Res() res: Response,
+  ) {
     const token = this.authService.extractTokenFromHeader(rawToken, false);
 
     // email:password -> base64
@@ -56,9 +66,12 @@ export class AuthController {
 
     const credentials = this.authService.decodeBasicToken(token);
 
-    // asdsadasdsa = > email:password이렇게 변환이 된다.
+    console.log(token, credentials);
 
-    return this.authService.loginWithEmail(credentials);
+    // 쿠키 보내기 테스트
+
+    return await this.authService.loginWithEmail(credentials);
+
     // 여기서는 이메일과 패스워드를 받고 authenticateWithEmailAndPassword함수를 호출한다.
     // authenticateWithEmailAndPassword 이 함수는 이메일로 사용자 존재 여부를 체크.
     // 그래서 유저 정보를 반환하게 된다.
@@ -71,6 +84,23 @@ export class AuthController {
   @Post('register/email')
   postRegisterEmail(@Body() body: RegisterUserDto) {
     return this.authService.registerWithEmail(body);
+  }
+
+  @Post('/github')
+  postRegisterGithub(@Body() body: RegisterGithubUserDto) {
+    // console.log(body);
+    return this.authService.loginWithGithubOAuth(body);
+  }
+
+  @Post('/callback/github')
+  async postOauthGithubLogin(@Body() githubCode: GithubCodeDto) {
+    const userInfo = await this.authService.OAuthGithubLogin(githubCode);
+
+    return {
+      status: 200,
+      message: '깃허브 유저 정보를 조회했습니다',
+      userInfo,
+    };
   }
 }
 /**
