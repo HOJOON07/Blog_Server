@@ -65,10 +65,10 @@ export class AuthService {
    *
    */
 
-  extractTokenFromHeader(header: string, isBearer: boolean) {
+  extractTokenFromHeader(rawToken: string, isBearer: boolean) {
     // 'Basic {token}'  'Bearer {token}'
     // [Basic, {token}]  [Bearer, {token}]
-    const splitToken = header.split(' ');
+    const splitToken = rawToken.split(' ');
 
     const prefix = isBearer ? 'Bearer' : 'Basic';
 
@@ -80,6 +80,14 @@ export class AuthService {
 
     return token;
   }
+
+  extractTokenFromCookie(cookies: string) {
+    if (!cookies) {
+      throw new UnauthorizedException('쿠키에 토큰이 없습니다.');
+    }
+    return cookies;
+  }
+
   /**
    * Basic
    * 1) asdksahdlas => email:password
@@ -200,6 +208,7 @@ export class AuthService {
 
   async authenticateWithEmailForGithubOAuth(user: RegisterGithubUserDto) {
     const existingUser = await this.userService.getUserByEmail(user.email);
+    console.log(existingUser);
 
     if (!existingUser) {
       //없으면 회원가입
@@ -216,7 +225,7 @@ export class AuthService {
     const existingUser = await this.userService.getUserByEmail(user.email);
 
     if (!existingUser) {
-      throw new UnauthorizedException('존재하지 않는 사용자입니다.');
+      throw new UnauthorizedException('회원정보를 찾을 수 없습니다.');
     }
 
     const passwordOK = await bcrypt.compare(
@@ -350,7 +359,7 @@ export class AuthService {
       const getBasicInfoUserUrl: string = 'https://api.github.com/user';
       const response = await axios.get(getBasicInfoUserUrl, {
         headers: {
-          authorization: `token ${access_token}`,
+          Authorization: `token ${access_token}`,
         },
       });
 
@@ -377,7 +386,7 @@ export class AuthService {
     try {
       const response = await axios.get(getUserEmailUrl, {
         headers: {
-          authorization: `token ${access_token}`,
+          Authorization: `token ${access_token}`,
         },
       });
       const email = response.data

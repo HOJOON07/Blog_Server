@@ -1,12 +1,11 @@
 import {
   Body,
   Controller,
-  Get,
   Post,
   Headers,
   UseGuards,
-  Request,
   Res,
+  Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 
@@ -17,6 +16,7 @@ import {
   RegisterUserDto,
 } from './dto/register-user.dto';
 import { GithubCodeDto } from './dto/register-github.dto';
+import { Request, Response } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -24,38 +24,50 @@ export class AuthController {
 
   @Post('token/access')
   @UseGuards(RefreshTokenGuard)
-  postTokenAccess(@Headers('authorization') rawToken: string) {
-    const token = this.authService.extractTokenFromHeader(rawToken, true);
+  postTokenAccess(@Req() req: Request, @Res() res: Response) {
+    const rawToken = req.cookies['accessToken'];
+    const token = this.authService.extractTokenFromCookie(rawToken);
 
     // {accessToken: {token}}
 
     const newToken = this.authService.rotateToken(token, false);
 
-    return {
-      accessToken: newToken,
-    };
+    // return {
+    //   accessToken: newToken,
+    // };
+    res.cookie('accessToken', newToken, {
+      sameSite: 'none',
+      secure: true,
+      httpOnly: true,
+    });
+    return res.send('액세스 토큰이 발급되었습니다.');
   }
 
   @Post('token/refresh')
   @UseGuards(RefreshTokenGuard)
-  postTokenRefresh(@Headers('authorization') rawToken: string) {
-    const token = this.authService.extractTokenFromHeader(rawToken, true);
+  postTokenRefresh(@Req() req: Request, @Res() res: Response) {
+    const rawToken = req.cookies['refreshToken'];
+    const token = this.authService.extractTokenFromCookie(rawToken);
 
     // {refreshToken: {token}}
 
     const newToken = this.authService.rotateToken(token, true);
 
-    return {
-      refreshToken: newToken,
-    };
+    res.cookie('refreshToken', newToken, {
+      sameSite: 'none',
+      secure: true,
+      httpOnly: true,
+    });
+
+    return res.send('리프레쉬 토큰이 발급되었습니다.');
   }
 
   @Post('login/email')
   @UseGuards(BasciTokenGuard)
   async postLoginEmail(
     @Headers('authorization') rawToken: string,
-    @Request() req,
-    // @Res() res: Response,
+    @Req() req: Request,
+    @Res() res: Response,
   ) {
     const token = this.authService.extractTokenFromHeader(rawToken, false);
 
@@ -66,10 +78,25 @@ export class AuthController {
     const credentials = this.authService.decodeBasicToken(token);
 
     console.log(token, credentials);
+    res.send('성공');
+    return await this.authService.loginWithEmail(credentials);
 
     // 쿠키 보내기 테스트
 
-    return await this.authService.loginWithEmail(credentials);
+    // const { accessToken, refreshToken } =
+    //   await this.authService.loginWithEmail(credentials);
+    // res.cookie('accessToken', accessToken, {
+    //   sameSite: 'none',
+    //   secure: true,
+    //   httpOnly: true,
+    // });
+
+    // res.cookie('refreshToken', refreshToken, {
+    //   sameSite: 'none',
+    //   secure: true,
+    //   httpOnly: true,
+    // });
+    // return res.send('JWT가 쿠키로 전송되었습니다.');
 
     // 여기서는 이메일과 패스워드를 받고 authenticateWithEmailAndPassword함수를 호출한다.
     // authenticateWithEmailAndPassword 이 함수는 이메일로 사용자 존재 여부를 체크.
@@ -81,8 +108,22 @@ export class AuthController {
   }
 
   @Post('register/email')
-  postRegisterEmail(@Body() body: RegisterUserDto) {
-    return this.authService.registerWithEmail(body);
+  async postRegisterEmail(@Body() body: RegisterUserDto, @Res() res: Response) {
+    const { accessToken, refreshToken } =
+      await this.authService.registerWithEmail(body);
+
+    res.cookie('accessToken', accessToken, {
+      sameSite: 'none',
+      secure: true,
+      httpOnly: true,
+    });
+
+    res.cookie('refreshToken', refreshToken, {
+      sameSite: 'none',
+      secure: true,
+      httpOnly: true,
+    });
+    return res.send('JWT가 쿠키로 전송되었습니다.');
   }
 
   @Post('/github')

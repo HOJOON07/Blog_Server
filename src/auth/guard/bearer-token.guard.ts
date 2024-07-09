@@ -15,13 +15,15 @@ export class BearerTokenGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
 
-    const rawToken = request.headers['authorization'];
+    // const rawToken = request.headers['authorization'];
+    const rawToken =
+      request.cookies['accessToken'] || request.cookies['refreshToken'];
 
     if (!rawToken) {
       throw new UnauthorizedException('토큰이 없습니다.');
     }
 
-    const token = this.authService.extractTokenFromHeader(rawToken, true);
+    const token = this.authService.extractTokenFromCookie(rawToken);
 
     const result = await this.authService.verifyToken(token);
 

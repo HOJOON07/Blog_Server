@@ -20,7 +20,6 @@ export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}
   // 1) GET / articles
   //    모든 articles를 다 가져온다.
-
   @Get()
   getArticles() {
     return this.articlesService.getAllArticles();
@@ -32,6 +31,7 @@ export class ArticlesController {
   getArticle(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.getArticleById(id);
   }
+
   // POST /articles
   @Post()
   @UseGuards(AccessTokenGuard)
@@ -46,6 +46,7 @@ export class ArticlesController {
   ) {
     return this.articlesService.updateArticle(id, body);
   }
+
   @Delete(':id')
   deleteArticle(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.deleteArticle(id);
