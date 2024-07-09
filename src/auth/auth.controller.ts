@@ -16,7 +16,6 @@ import {
   RegisterGithubUserDto,
   RegisterUserDto,
 } from './dto/register-user.dto';
-import { Response } from 'express';
 import { GithubCodeDto } from './dto/register-github.dto';
 
 @Controller('auth')

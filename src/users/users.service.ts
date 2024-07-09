@@ -116,4 +116,12 @@ export class UsersService {
     });
     return await this.userRepository.save(newUser);
   }
+
+  async getUserInfo(userId: number) {
+    const userData = await this.userRepository.findOne({
+      select: ['id', 'devName', 'email'],
+      where: { id: userId },
+    });
+    return userData;
+  }
 }

@@ -3,12 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ArticlesModel } from './entities/articles.entity';
 import { CreateArticleDto } from './dto/create-article-dto';
-import {
-  ArticlePrivateStateEnums,
-  ArticlePublishStateEnums,
-} from './const/article-state';
 import { UpdateArticleDto } from './dto/update-article-dto';
-import { retry } from 'rxjs';
 
 @Injectable()
 export class ArticlesService {

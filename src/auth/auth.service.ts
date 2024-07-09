@@ -200,7 +200,6 @@ export class AuthService {
 
   async authenticateWithEmailForGithubOAuth(user: RegisterGithubUserDto) {
     const existingUser = await this.userService.getUserByEmail(user.email);
-    console.log(existingUser);
 
     if (!existingUser) {
       //없으면 회원가입
@@ -351,7 +350,7 @@ export class AuthService {
       const getBasicInfoUserUrl: string = 'https://api.github.com/user';
       const response = await axios.get(getBasicInfoUserUrl, {
         headers: {
-          Authorization: `token ${access_token}`,
+          authorization: `token ${access_token}`,
         },
       });
 
@@ -378,7 +377,7 @@ export class AuthService {
     try {
       const response = await axios.get(getUserEmailUrl, {
         headers: {
-          Authorization: `token ${access_token}`,
+          authorization: `token ${access_token}`,
         },
       });
       const email = response.data

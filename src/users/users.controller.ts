@@ -1,12 +1,16 @@
-import { Body, Controller, Delete, Get, Post, UsePipes } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Post,
+  Request,
+  UseGuards,
+  UsePipes,
+} from '@nestjs/common';
 import { UsersService } from './users.service';
-import { PasswordPipe } from 'src/auth/pipe/password.pipe';
-
-type AuthDTO = {
-  email: string;
-  password: string;
-  name: string;
-};
+import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
+import { User } from './decorator/user.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -20,11 +24,12 @@ export class UsersController {
   //   return this.usersService.createUser(email, password, devName);
   // }
 
-  @Get()
   /**
    * serialization => 직렬화 : 현재 시스템에서 사용되는 (NestJS) 데이터의 구조를 다른 시스템에서도 쉽게 사용 할 수 있는 포맷으로 변환
    * deseialization => 역직렬화
    */
+
+  @Get()
   getAllUser() {
     return this.usersService.getAllUser();
   }
@@ -32,5 +37,11 @@ export class UsersController {
   @Delete('delete')
   deleteUser(@Body('email') email: string) {
     return this.usersService.deleteUser(email);
+  }
+
+  @Get('info')
+  @UseGuards(AccessTokenGuard)
+  getReturnUserInfo(@User('id') userId: number, @Request() req) {
+    return this.usersService.getUserInfo(userId);
   }
 }
