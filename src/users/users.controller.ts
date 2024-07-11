@@ -4,6 +4,7 @@ import {
   Delete,
   Get,
   Post,
+  Query,
   Request,
   UseGuards,
   UsePipes,
@@ -39,9 +40,27 @@ export class UsersController {
     return this.usersService.deleteUser(email);
   }
 
-  @Get('info')
+  @Get('myinfo')
   @UseGuards(AccessTokenGuard)
-  getReturnUserInfo(@User('id') userId: number, @Request() req) {
-    return this.usersService.getUserInfo(userId);
+  getReturnMyInfo(@User('id') userId: number, @Request() req) {
+    return this.usersService.getMyInfo(userId);
   }
+
+  @Get('info')
+  getReturnUserInfo(@Query('devName') devName: string) {
+    return this.usersService.getUserInfo(devName);
+  }
+
+  @Post('duplicate')
+  // @UseGuards(AccessTokenGuard)
+  postDuplicateDevName(@Body('devName') devName: string) {
+    return this.usersService.duplicateGetDevName(devName);
+  }
+
+  // @Post("edit")
+  // @UseGuards(AccessTokenGuard)
+  // // eidt dtd짜야되고
+  // postUserProfilesEdit(@Body()){
+
+  // }
 }

@@ -117,11 +117,56 @@ export class UsersService {
     return await this.userRepository.save(newUser);
   }
 
-  async getUserInfo(userId: number) {
+  async getMyInfo(userId: number) {
     const userData = await this.userRepository.findOne({
-      select: ['id', 'devName', 'email'],
+      select: [
+        'id',
+        'devName',
+        'email',
+        'bio',
+        'email',
+        'instagram',
+        'linkedin',
+        'location',
+        'position',
+        'role',
+        'socialEtc',
+        'github',
+      ],
       where: { id: userId },
     });
     return userData;
+  }
+
+  async getUserInfo(devName: string) {
+    const userData = await this.userRepository.findOne({
+      select: [
+        'id',
+        'devName',
+        'email',
+        'bio',
+        'email',
+        'instagram',
+        'linkedin',
+        'location',
+        'position',
+        'role',
+        'socialEtc',
+        'github',
+      ],
+      where: { devName },
+    });
+    return userData;
+  }
+
+  async duplicateGetDevName(devName: string) {
+    const duplicated = await this.userRepository.exists({
+      where: {
+        devName,
+      },
+    });
+    if (duplicated) {
+      throw new BadRequestException('이미 존재하는 데브월드 이름입니다.');
+    }
   }
 }
