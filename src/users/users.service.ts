@@ -2,12 +2,15 @@ import {
   BadGatewayException,
   BadRequestException,
   Injectable,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from './entities/users.entity';
 import { Repository } from 'typeorm';
 import { GithubBasicInfoUserDto } from 'src/auth/dto/register-github.dto';
 import { RegisterGithubUserDto } from 'src/auth/dto/register-user.dto';
+import { DuplicateDevNameDto } from './dto/duplicate-devname.dto';
+import { UserProfileEditDto } from './dto/user-profiles-edit.dto';
 
 @Injectable()
 export class UsersService {
@@ -159,7 +162,19 @@ export class UsersService {
     return userData;
   }
 
-  async duplicateGetDevName(devName: string) {
+  async duplicateGetDevName(id: number, { devName }: DuplicateDevNameDto) {
+    const currentUser = await this.userRepository.findOne({
+      where: { id },
+    });
+
+    if (!currentUser) {
+      throw new BadRequestException('사용자를 찾을 수 없습니다.');
+    }
+
+    if (currentUser.devName === devName) {
+      return { message: '현재 사용하고 있는 데브월드 이름입니다.' };
+    }
+
     const duplicated = await this.userRepository.exists({
       where: {
         devName,
@@ -168,5 +183,47 @@ export class UsersService {
     if (duplicated) {
       throw new BadRequestException('이미 존재하는 데브월드 이름입니다.');
     }
+
+    return { message: '사용 가능한 데브월드 이름입니다.' };
+  }
+
+  async userProfileEdit(id: number, userProfileEditDto: UserProfileEditDto) {
+    const userProfileData = await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
+
+    if (!userProfileData) {
+      throw new NotFoundException('사용자 정보가 존재하지 않습니다.');
+    }
+
+    const {
+      devName,
+      bio,
+      position,
+      github,
+      linkedin,
+      instagram,
+      socialEtc,
+      email,
+      location,
+    } = userProfileEditDto;
+
+    Object.assign(userProfileData, {
+      devName,
+      bio,
+      position,
+      github,
+      linkedin,
+      instagram,
+      socialEtc,
+      email,
+      location,
+    });
+
+    const newUserProfile = await this.userRepository.save(userProfileData);
+
+    return newUserProfile;
   }
 }

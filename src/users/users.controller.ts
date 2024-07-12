@@ -3,6 +3,9 @@ import {
   Controller,
   Delete,
   Get,
+  Param,
+  ParseIntPipe,
+  Patch,
   Post,
   Query,
   Request,
@@ -12,6 +15,8 @@ import {
 import { UsersService } from './users.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { User } from './decorator/user.decorator';
+import { DuplicateDevNameDto } from './dto/duplicate-devname.dto';
+import { UserProfileEditDto } from './dto/user-profiles-edit.dto';
 
 @Controller('users')
 export class UsersController {
@@ -52,9 +57,21 @@ export class UsersController {
   }
 
   @Post('duplicate')
-  // @UseGuards(AccessTokenGuard)
-  postDuplicateDevName(@Body('devName') devName: string) {
-    return this.usersService.duplicateGetDevName(devName);
+  @UseGuards(AccessTokenGuard)
+  postDuplicateDevName(
+    @User('id') id: number,
+    @Body() duplicateDevNameDto: DuplicateDevNameDto,
+  ) {
+    return this.usersService.duplicateGetDevName(id, duplicateDevNameDto);
+  }
+
+  @Patch('edit/:userId')
+  @UseGuards(AccessTokenGuard)
+  postUserProfilesEdit(
+    @User('id') id: number,
+    @Body() userProfileEditDto: UserProfileEditDto,
+  ) {
+    return this.usersService.userProfileEdit(id, userProfileEditDto);
   }
 
   // @Post("edit")
