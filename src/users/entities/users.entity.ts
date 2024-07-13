@@ -104,6 +104,12 @@ export class UserModel extends BaseModel {
   })
   company: string;
 
+  @Column({
+    nullable: true,
+    type: 'jsonb',
+  })
+  readme: string;
+
   // 존재하지 않는 프로퍼티를 만들어서 보내주고 싶다면 expose를 사용해서 보내줄 수 있다.
   // @Expose()
   // get devNameAndEmail() {

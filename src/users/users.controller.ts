@@ -67,12 +67,24 @@ export class UsersController {
 
   @Patch('edit/:userId')
   @UseGuards(AccessTokenGuard)
-  postUserProfilesEdit(
+  patchtUserProfilesEdit(
     @User('id') id: number,
     @Body() userProfileEditDto: UserProfileEditDto,
   ) {
     return this.usersService.userProfileEdit(id, userProfileEditDto);
   }
+
+  @Patch('readme/:id')
+  @UseGuards(AccessTokenGuard)
+  patchUserReadMe(@User('id') id: number, @Body('readme') readme: string) {
+    return this.usersService.UserReadmeEdit(id, readme);
+  }
+
+  // @Get('readme')
+  // @UseGuards(AccessTokenGuard)
+  // getUserReadMe(@User('id') id: number) {
+  //   return this.usersService.userReadmeGet(id);
+  // }
 
   // @Post("edit")
   // @UseGuards(AccessTokenGuard)

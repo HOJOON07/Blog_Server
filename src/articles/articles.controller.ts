@@ -7,6 +7,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
@@ -14,6 +15,8 @@ import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { User } from 'src/users/decorator/user.decorator';
 import { CreateArticleDto } from './dto/create-article-dto';
 import { UpdateArticleDto } from './dto/update-article-dto';
+import { PaginateArticleDto } from './dto/paginate-article.dto';
+import { UserModel } from 'src/users/entities/users.entity';
 
 @Controller('articles')
 export class ArticlesController {
@@ -22,8 +25,8 @@ export class ArticlesController {
   //    모든 articles를 다 가져온다.
 
   @Get()
-  getArticles() {
-    return this.articlesService.getAllArticles();
+  getArticles(@Query() query: PaginateArticleDto) {
+    return this.articlesService.paginateArticles(query);
   }
 
   // 2) GET /articles/:id
@@ -31,6 +34,14 @@ export class ArticlesController {
   @Get(':id')
   getArticle(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.getArticleById(id);
+  }
+
+  @Post('random')
+  @UseGuards(AccessTokenGuard)
+  async postPostArticles(@User() user: UserModel) {
+    await this.articlesService.generateArticles(user.id);
+
+    return true;
   }
   // POST /articles
   @Post()

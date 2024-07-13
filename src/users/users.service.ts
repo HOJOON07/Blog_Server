@@ -156,9 +156,11 @@ export class UsersService {
         'role',
         'socialEtc',
         'github',
+        'readme',
       ],
       where: { devName },
     });
+
     return userData;
   }
 
@@ -225,5 +227,35 @@ export class UsersService {
     const newUserProfile = await this.userRepository.save(userProfileData);
 
     return newUserProfile;
+  }
+
+  async UserReadmeEdit(id: number, readme: string) {
+    const userProfileData = await this.userRepository.findOne({
+      where: {
+        id,
+      },
+    });
+    if (!userProfileData) {
+      throw new Error('유저의 정보가 없습니다.!!');
+    }
+    userProfileData.readme = readme;
+
+    const newReadmeProfileData =
+      await this.userRepository.save(userProfileData);
+
+    return newReadmeProfileData;
+  }
+
+  async userReadmeGet(id: number) {
+    const userProfileReadMeData = await this.userRepository.findOne({
+      select: ['readme'],
+      where: { id },
+    });
+
+    if (!userProfileReadMeData) {
+      throw new Error('유저의 리드미 정보가 없습니다.!');
+    }
+
+    return JSON.parse(userProfileReadMeData.readme);
   }
 }

@@ -1,9 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
 import { ArticlesModel } from './entities/articles.entity';
 import { CreateArticleDto } from './dto/create-article-dto';
 import { UpdateArticleDto } from './dto/update-article-dto';
+import { PaginateArticleDto } from './dto/paginate-article.dto';
+import {
+  ArticlePrivateStateEnums,
+  ArticlePublishStateEnums,
+} from './const/article-state';
+import { HOST, PROTOCOL } from 'src/common/const/env.const';
 
 @Injectable()
 export class ArticlesService {
@@ -16,6 +22,90 @@ export class ArticlesService {
       // author의 대한 정보도 같이
       relations: ['author'],
     });
+  }
+
+  //1) 오름차 순으로 정렬하는 pagination만 일단 구현
+  async paginateArticles(dto: PaginateArticleDto) {
+    const where: FindOptionsWhere<ArticlesModel> = {};
+
+    if (dto.where__id_less_than) {
+      where.id = LessThan(dto.where__id_less_than);
+    } else if (dto.where__id_more_than) {
+      where.id = MoreThan(dto.where__id_more_than);
+    }
+    // 1,2,3,4,5,
+    const articles = await this.articlesRepository.find({
+      where,
+      // 날짜 기준 오름차순 정렬중
+      order: {
+        createdAt: dto.order__createdAt,
+      },
+      take: dto.take,
+    });
+
+    // 해당되는 포스트가 0개이상이면 마지막 포스트를 가져오고
+    // 아니면 null을 반환한다.
+
+    const lastItem =
+      articles.length > 0 && articles.length === dto.take
+        ? articles[articles.length - 1]
+        : null;
+
+    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/articles`);
+
+    // dto의 키 값들을 돌면서 키값에 해당하는 밸류가 존재하면 param에 그대로 붙여넣는다.
+    // 단 where__id_more_than값만 lastItem의 마지막 값으로 넣어준다.
+
+    if (nextUrl) {
+      for (const key of Object.keys(dto)) {
+        if (dto[key]) {
+          if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
+            nextUrl.searchParams.append(key, dto[key]);
+          }
+        }
+      }
+    }
+    let key = null;
+
+    if (dto.order__createdAt === 'ASC') {
+      key = 'where__id_more_than';
+    } else {
+      key = 'where__id_less_than';
+    }
+
+    nextUrl.searchParams.append(key, lastItem.id.toString());
+
+    /**
+     * Response
+     * data:Data[]
+     * cursor:{
+     *  after:마지막 데이터의 ID
+     * },
+     * count:응답한 데이터의 갯수
+     * next:다음 요청을 할때 사용할 URL
+     * @
+     */
+
+    return {
+      data: articles,
+      cursor: {
+        after: lastItem?.id ?? null,
+      },
+      count: articles.length,
+      next: nextUrl?.toString() ?? null,
+    };
+  }
+
+  async generateArticles(userId: number) {
+    for (let i = 0; i < 100; i++) {
+      await this.createArticle(userId, {
+        title: `임의로 생성된${i}`,
+        contents: `임의로 생성된 포스트 내용${i}`,
+        description: `임의로 생성된 포스트 설명${i}`,
+        isPrivate: ArticlePrivateStateEnums.Open,
+        isPublish: ArticlePublishStateEnums.Publish,
+      });
+    }
   }
 
   async getArticleById(id: number) {
