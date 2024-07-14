@@ -10,12 +10,14 @@ import {
   ArticlePublishStateEnums,
 } from './const/article-state';
 import { HOST, PROTOCOL } from 'src/common/const/env.const';
+import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class ArticlesService {
   constructor(
     @InjectRepository(ArticlesModel)
     private readonly articlesRepository: Repository<ArticlesModel>,
+    private readonly commonService: CommonService,
   ) {}
   async getAllArticles() {
     return this.articlesRepository.find({
@@ -26,74 +28,93 @@ export class ArticlesService {
 
   //1) 오름차 순으로 정렬하는 pagination만 일단 구현
   async paginateArticles(dto: PaginateArticleDto) {
-    const where: FindOptionsWhere<ArticlesModel> = {};
+    return this.commonService.paginate(
+      dto,
+      this.articlesRepository,
+      { relations: ['author'] },
+      'articles',
+    );
+  }
 
-    if (dto.where__id_less_than) {
-      where.id = LessThan(dto.where__id_less_than);
-    } else if (dto.where__id_more_than) {
-      where.id = MoreThan(dto.where__id_more_than);
-    }
-    // 1,2,3,4,5,
-    const articles = await this.articlesRepository.find({
-      where,
-      // 날짜 기준 오름차순 정렬중
-      order: {
-        createdAt: dto.order__createdAt,
-      },
-      take: dto.take,
-    });
-
-    // 해당되는 포스트가 0개이상이면 마지막 포스트를 가져오고
-    // 아니면 null을 반환한다.
-
-    const lastItem =
-      articles.length > 0 && articles.length === dto.take
-        ? articles[articles.length - 1]
-        : null;
-
-    const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/articles`);
-
-    // dto의 키 값들을 돌면서 키값에 해당하는 밸류가 존재하면 param에 그대로 붙여넣는다.
-    // 단 where__id_more_than값만 lastItem의 마지막 값으로 넣어준다.
-
-    if (nextUrl) {
-      for (const key of Object.keys(dto)) {
-        if (dto[key]) {
-          if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
-            nextUrl.searchParams.append(key, dto[key]);
-          }
-        }
-      }
-    }
-    let key = null;
-
-    if (dto.order__createdAt === 'ASC') {
-      key = 'where__id_more_than';
-    } else {
-      key = 'where__id_less_than';
-    }
-
-    nextUrl.searchParams.append(key, lastItem.id.toString());
-
+  async pagePaginateArticles(dto: PaginateArticleDto) {
     /**
-     * Response
-     * data:Data[]
-     * cursor:{
-     *  after:마지막 데이터의 ID
-     * },
-     * count:응답한 데이터의 갯수
-     * next:다음 요청을 할때 사용할 URL
-     * @
+     * data:Data[] ->
+     * total:number -> 전체 데이터가 몇개가 되는지.
+     *
+     * [1] [2] [3] [4]
      */
+    // const [articles, count] = await this.articlesRepository.findAndCount({
+    //   skip: dto.take * (dto.page - 1),
+    //   take: dto.take,
+    //   order: {
+    //     createdAt: dto.order__createdAt,
+    //   },
+    // });
+    // return {
+    //   data: articles,
+    //   total: count,
+    // };
+  }
 
-    return {
-      data: articles,
-      cursor: {
-        after: lastItem?.id ?? null,
-      },
-      count: articles.length,
-      next: nextUrl?.toString() ?? null,
-    };
+  async cursorPaginateArticles(dto: PaginateArticleDto) {
+    // const where: FindOptionsWhere<ArticlesModel> = {};
+    // if (dto.where__id__less_than) {
+    //   where.id = LessThan(dto.where__id__less_than);
+    // } else if (dto.where__id__more_than) {
+    //   where.id = MoreThan(dto.where__id__more_than);
+    // }
+    // // 1,2,3,4,5,
+    // const articles = await this.articlesRepository.find({
+    //   where,
+    //   // 날짜 기준 오름차순 정렬중
+    //   order: {
+    //     createdAt: dto.order__createdAt,
+    //   },
+    //   take: dto.take,
+    // });
+    // // 해당되는 포스트가 0개이상이면 마지막 포스트를 가져오고
+    // // 아니면 null을 반환한다.
+    // const lastItem =
+    //   articles.length > 0 && articles.length === dto.take
+    //     ? articles[articles.length - 1]
+    //     : null;
+    // const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/articles`);
+    // // dto의 키 값들을 돌면서 키값에 해당하는 밸류가 존재하면 param에 그대로 붙여넣는다.
+    // // 단 where__id_more_than값만 lastItem의 마지막 값으로 넣어준다.
+    // if (nextUrl) {
+    //   for (const key of Object.keys(dto)) {
+    //     if (dto[key]) {
+    //       if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
+    //         nextUrl.searchParams.append(key, dto[key]);
+    //       }
+    //     }
+    //   }
+    // }
+    // let key = null;
+    // if (dto.order__createdAt === 'ASC') {
+    //   key = 'where__id__more_than';
+    // } else {
+    //   key = 'where__id__less_than';
+    // }
+    // nextUrl.searchParams.append(key, lastItem.id.toString());
+    // /**
+    //  * Response
+    //  * data:Data[]
+    //  * cursor:{
+    //  *  after:마지막 데이터의 ID
+    //  * },
+    //  * count:응답한 데이터의 갯수
+    //  * next:다음 요청을 할때 사용할 URL
+    //  * @
+    //  */
+    // return {
+    //   data: articles,
+    //   cursor: {
+    //     after: lastItem?.id ?? null,
+    //   },
+    //   count: articles.length,
+    //   next: nextUrl?.toString() ?? null,
+    // };
   }
 
   async generateArticles(userId: number) {
