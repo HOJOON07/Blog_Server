@@ -1,14 +1,19 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
+  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
+  UploadedFile,
+  UseFilters,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { ArticlesService } from './articles.service';
 import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
@@ -17,14 +22,28 @@ import { CreateArticleDto } from './dto/create-article-dto';
 import { UpdateArticleDto } from './dto/update-article-dto';
 import { PaginateArticleDto } from './dto/paginate-article.dto';
 import { UserModel } from 'src/users/entities/users.entity';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ImageModelType } from 'src/common/entities/image.entity';
+import { DataSource, QueryRunner as QR } from 'typeorm';
+import { ArticlesThumbnailService } from './thumbnail/dto/thumbnail.service';
+import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
+import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
+import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
+import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception-filter';
 
 @Controller('articles')
 export class ArticlesController {
-  constructor(private readonly articlesService: ArticlesService) {}
+  constructor(
+    private readonly articlesService: ArticlesService,
+    private readonly dataSource: DataSource,
+    private readonly articlesThumbnailService: ArticlesThumbnailService,
+  ) {}
   // 1) GET / articles
   //    모든 articles를 다 가져온다.
 
   @Get()
+  // @UseInterceptors(LogInterceptor)
+  // @UseFilters(HttpExceptionFilter)
   getArticles(@Query() query: PaginateArticleDto) {
     return this.articlesService.paginateArticles(query);
   }
@@ -44,10 +63,40 @@ export class ArticlesController {
     return true;
   }
   // POST /articles
+
+  // POST API -> A모델을 정의하고 ,B모델을 저장한다.
+  // await 1
+  // await 2
+
+  // 만약에 1을 하다가 실패하면 b를 저장하면 안될 경우 -> 안전 장치가 필요하다.
+  // 트랜잭션이란 all or nothing
+
+  // transaction
+  // start -> 시작
+  // commit -> 저장
+  // rollback -> 원상 복구
   @Post()
   @UseGuards(AccessTokenGuard)
-  postArticle(@User('id') userId: number, @Body() body: CreateArticleDto) {
-    return this.articlesService.createArticle(userId, body);
+  @UseInterceptors(TransactionInterceptor)
+  async postArticle(
+    @User('id') userId: number,
+    @Body() body: CreateArticleDto,
+    @QueryRunner() qr: QR,
+  ) {
+    const article = await this.articlesService.createArticle(userId, body, qr);
+
+    for (let i = 0; i < body.thumbnails.length; i++) {
+      await this.articlesThumbnailService.createArticleThumbnail(
+        {
+          article,
+          order: i,
+          path: body.thumbnails[i],
+          type: ImageModelType.ARTICLE_IMAGE,
+        },
+        qr,
+      );
+    }
+    return this.articlesService.getArticleById(article.id, qr);
   }
 
   @Patch(':id')

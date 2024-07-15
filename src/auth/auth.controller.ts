@@ -65,8 +65,6 @@ export class AuthController {
 
     const credentials = this.authService.decodeBasicToken(token);
 
-    console.log(token, credentials);
-
     // 쿠키 보내기 테스트
 
     return await this.authService.loginWithEmail(credentials);

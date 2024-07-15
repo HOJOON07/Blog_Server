@@ -1,8 +1,8 @@
 export const ENV_JWT_SECRET = 'JWT_SECRET';
 export const ENV_JWT_HASH_ROUNDS = 'JWT_HASH_ROUNDS';
 
-export const ENV_PROTOCOL_KEY = 'PROTOCOL';
 export const ENV_PROTOCOL = 'PROTOCOL';
+export const ENV_HOST = 'localhost:5500';
 
 export const ENV_DB_HOST = 'DB_HOST';
 export const ENV_DB_PORT = 'DB_PORT';

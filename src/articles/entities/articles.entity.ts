@@ -1,11 +1,15 @@
 import { BaseModel } from 'src/common/entities/base.entity';
 import { UserModel } from 'src/users/entities/users.entity';
-import { Column, Entity, ManyToOne } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 import {
   ArticlePrivateStateEnums,
   ArticlePublishStateEnums,
 } from '../const/article-state';
 import { IsEnum, IsNumber, IsString, isString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { join } from 'path';
+import { ARTICLES_PUBLIC_IMAGE_PATH } from 'src/common/const/path.const';
+import { ImageModel } from 'src/common/entities/image.entity';
 
 @Entity()
 export class ArticlesModel extends BaseModel {
@@ -14,9 +18,13 @@ export class ArticlesModel extends BaseModel {
   })
   author: UserModel;
 
-  @Column({ nullable: true })
+  // @Column({ nullable: true })
+  // @Transform(
+  //   ({ value }) => value && `/${join(ARTICLES_PUBLIC_IMAGE_PATH, value)}`,
+  // )
   @IsString()
-  thumbnail: string;
+  @OneToMany((type) => ImageModel, (image) => image.article)
+  thumbnails: ImageModel[];
 
   @Column()
   @IsString()

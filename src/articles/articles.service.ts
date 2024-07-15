@@ -1,6 +1,7 @@
+import { DEFAULT_ARTICLES_FIND_OPTIONS } from './const/default-article-find-options';
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { FindOptionsWhere, LessThan, MoreThan, Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { ArticlesModel } from './entities/articles.entity';
 import { CreateArticleDto } from './dto/create-article-dto';
 import { UpdateArticleDto } from './dto/update-article-dto';
@@ -9,8 +10,10 @@ import {
   ArticlePrivateStateEnums,
   ArticlePublishStateEnums,
 } from './const/article-state';
-import { HOST, PROTOCOL } from 'src/common/const/env.const';
+
 import { CommonService } from 'src/common/common.service';
+
+import { ImageModel } from 'src/common/entities/image.entity';
 
 @Injectable()
 export class ArticlesService {
@@ -18,103 +21,23 @@ export class ArticlesService {
     @InjectRepository(ArticlesModel)
     private readonly articlesRepository: Repository<ArticlesModel>,
     private readonly commonService: CommonService,
+    @InjectRepository(ImageModel)
+    private readonly imageRepository: Repository<ImageModel>,
   ) {}
   async getAllArticles() {
     return this.articlesRepository.find({
       // author의 대한 정보도 같이
-      relations: ['author'],
+      ...DEFAULT_ARTICLES_FIND_OPTIONS,
     });
   }
 
-  //1) 오름차 순으로 정렬하는 pagination만 일단 구현
   async paginateArticles(dto: PaginateArticleDto) {
     return this.commonService.paginate(
       dto,
       this.articlesRepository,
-      { relations: ['author'] },
+      { ...DEFAULT_ARTICLES_FIND_OPTIONS },
       'articles',
     );
-  }
-
-  async pagePaginateArticles(dto: PaginateArticleDto) {
-    /**
-     * data:Data[] ->
-     * total:number -> 전체 데이터가 몇개가 되는지.
-     *
-     * [1] [2] [3] [4]
-     */
-    // const [articles, count] = await this.articlesRepository.findAndCount({
-    //   skip: dto.take * (dto.page - 1),
-    //   take: dto.take,
-    //   order: {
-    //     createdAt: dto.order__createdAt,
-    //   },
-    // });
-    // return {
-    //   data: articles,
-    //   total: count,
-    // };
-  }
-
-  async cursorPaginateArticles(dto: PaginateArticleDto) {
-    // const where: FindOptionsWhere<ArticlesModel> = {};
-    // if (dto.where__id__less_than) {
-    //   where.id = LessThan(dto.where__id__less_than);
-    // } else if (dto.where__id__more_than) {
-    //   where.id = MoreThan(dto.where__id__more_than);
-    // }
-    // // 1,2,3,4,5,
-    // const articles = await this.articlesRepository.find({
-    //   where,
-    //   // 날짜 기준 오름차순 정렬중
-    //   order: {
-    //     createdAt: dto.order__createdAt,
-    //   },
-    //   take: dto.take,
-    // });
-    // // 해당되는 포스트가 0개이상이면 마지막 포스트를 가져오고
-    // // 아니면 null을 반환한다.
-    // const lastItem =
-    //   articles.length > 0 && articles.length === dto.take
-    //     ? articles[articles.length - 1]
-    //     : null;
-    // const nextUrl = lastItem && new URL(`${PROTOCOL}://${HOST}/articles`);
-    // // dto의 키 값들을 돌면서 키값에 해당하는 밸류가 존재하면 param에 그대로 붙여넣는다.
-    // // 단 where__id_more_than값만 lastItem의 마지막 값으로 넣어준다.
-    // if (nextUrl) {
-    //   for (const key of Object.keys(dto)) {
-    //     if (dto[key]) {
-    //       if (key !== 'where__id_more_than' && key !== 'where__id_less_than') {
-    //         nextUrl.searchParams.append(key, dto[key]);
-    //       }
-    //     }
-    //   }
-    // }
-    // let key = null;
-    // if (dto.order__createdAt === 'ASC') {
-    //   key = 'where__id__more_than';
-    // } else {
-    //   key = 'where__id__less_than';
-    // }
-    // nextUrl.searchParams.append(key, lastItem.id.toString());
-    // /**
-    //  * Response
-    //  * data:Data[]
-    //  * cursor:{
-    //  *  after:마지막 데이터의 ID
-    //  * },
-    //  * count:응답한 데이터의 갯수
-    //  * next:다음 요청을 할때 사용할 URL
-    //  * @
-    //  */
-    // return {
-    //   data: articles,
-    //   cursor: {
-    //     after: lastItem?.id ?? null,
-    //   },
-    //   count: articles.length,
-    //   next: nextUrl?.toString() ?? null,
-    // };
   }
 
   async generateArticles(userId: number) {
@@ -125,23 +48,24 @@ export class ArticlesService {
         description: `임의로 생성된 포스트 설명${i}`,
         isPrivate: ArticlePrivateStateEnums.Open,
         isPublish: ArticlePublishStateEnums.Publish,
+        thumbnails: [],
       });
     }
   }
 
-  async getArticleById(id: number) {
-    const article = await this.articlesRepository.findOne({
+  async getArticleById(id: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+    const article = await repository.findOne({
+      ...DEFAULT_ARTICLES_FIND_OPTIONS,
       where: {
         // 입력받은 id가 데이터베이스에 있는 id와 같은 값인지.
-        author: {
-          id: id,
-        },
+        id,
       },
       // author의 대한 정보도 같이
-      relations: ['author'],
     });
 
     if (!article) {
+      console.log('여기구나?');
       // return false;
       throw new NotFoundException();
     }
@@ -149,16 +73,28 @@ export class ArticlesService {
     return article;
   }
 
-  async createArticle(authorId: number, articleDto: CreateArticleDto) {
+  getRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<ArticlesModel>(ArticlesModel)
+      : this.articlesRepository;
+  }
+
+  async createArticle(
+    authorId: number,
+    articleDto: CreateArticleDto,
+    qr?: QueryRunner,
+  ) {
+    const repository = this.getRepository(qr);
     //create 메서드는 동기적으로 동작함.
-    const article = this.articlesRepository.create({
+    const article = repository.create({
       author: {
         id: authorId,
       },
       ...articleDto,
+      thumbnails: [],
     });
     // save는 만든 아티클을 저장할 수 있도록
-    const newArticle = await this.articlesRepository.save(article);
+    const newArticle = await repository.save(article);
 
     return article;
   }

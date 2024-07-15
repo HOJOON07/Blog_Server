@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsString } from 'class-validator';
+import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
 import {
   ArticlePrivateStateEnums,
   ArticlePublishStateEnums,
@@ -12,4 +12,10 @@ export class CreateArticleDto extends PickType(ArticlesModel, [
   'description',
   'isPrivate',
   'isPublish',
-]) {}
+]) {
+  @IsString({
+    each: true,
+  })
+  @IsOptional()
+  thumbnails?: string[] = [];
+}
