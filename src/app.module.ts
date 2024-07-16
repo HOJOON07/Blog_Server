@@ -1,10 +1,4 @@
-import {
-  ClassSerializerInterceptor,
-  MiddlewareConsumer,
-  Module,
-  NestModule,
-  RequestMethod,
-} from '@nestjs/common';
+import { ClassSerializerInterceptor, Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ArticlesModule } from './articles/articles.module';
@@ -14,7 +8,7 @@ import { UsersModule } from './users/users.module';
 import { UserModel } from './users/entities/users.entity';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
-import { APP_INTERCEPTOR } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { MailModule } from './mail/mail.module';
 import { AuthMailModel } from './mail/entities/auth-email';
 import { ConfigModule } from '@nestjs/config';
@@ -28,7 +22,13 @@ import {
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { PUBLIC_FOLDER_PATH } from './common/const/path.const';
 import { ImageModel } from './common/entities/image.entity';
-import { LogMiddleWare } from './common/middleware/log.middleware';
+import { ChatsModule } from './chats/chats.module';
+import { ChatsModel } from './chats/entities/chats.entity';
+import { MessagesModel } from './chats/messages/entities/messages.entity';
+import { CommentsModule } from './articles/comments/comments.module';
+import { CommentsModel } from './articles/comments/entities/comment.entity';
+import { RolesGuard } from './users/guard/roles.guard';
+import { AccessTokenGuard } from './auth/guard/bearer-token.guard';
 
 @Module({
   imports: [
@@ -46,7 +46,15 @@ import { LogMiddleWare } from './common/middleware/log.middleware';
       username: process.env[ENV_DB_USERNAME],
       password: process.env[ENV_DB_PASSWORD],
       database: process.env[ENV_DB_DATABASE],
-      entities: [ArticlesModel, UserModel, AuthMailModel, ImageModel],
+      entities: [
+        ArticlesModel,
+        UserModel,
+        AuthMailModel,
+        ImageModel,
+        ChatsModel,
+        MessagesModel,
+        CommentsModel,
+      ],
       synchronize: true,
     }),
     ArticlesModule,
@@ -54,6 +62,8 @@ import { LogMiddleWare } from './common/middleware/log.middleware';
     AuthModule,
     CommonModule,
     MailModule,
+    ChatsModule,
+    CommentsModule,
   ],
   controllers: [AppController],
   providers: [
@@ -62,13 +72,17 @@ import { LogMiddleWare } from './common/middleware/log.middleware';
       provide: APP_INTERCEPTOR,
       useClass: ClassSerializerInterceptor,
     },
+    { provide: APP_GUARD, useClass: AccessTokenGuard },
+    { provide: APP_GUARD, useClass: RolesGuard },
   ],
 })
-export class AppModule implements NestModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer.apply(LogMiddleWare).forRoutes({
-      path: '*',
-      method: RequestMethod.ALL,
-    });
-  }
-}
+export class AppModule {}
+
+// export class AppModule implements NestModule {
+//   configure(consumer: MiddlewareConsumer) {
+//     consumer.apply(LogMiddleWare).forRoutes({
+//       path: '*',
+//       method: RequestMethod.ALL,
+//     });
+//   }
+// }

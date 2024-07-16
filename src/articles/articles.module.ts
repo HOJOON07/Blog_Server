@@ -25,5 +25,6 @@ import { LogMiddleWare } from 'src/common/middleware/log.middleware';
   ],
   controllers: [ArticlesController],
   providers: [ArticlesService, ArticlesThumbnailService],
+  exports: [ArticlesService],
 })
 export class ArticlesModule {}

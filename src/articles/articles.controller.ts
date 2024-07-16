@@ -1,10 +1,8 @@
 import {
-  BadRequestException,
   Body,
   Controller,
   Delete,
   Get,
-  InternalServerErrorException,
   Param,
   ParseIntPipe,
   Patch,
@@ -30,6 +28,9 @@ import { LogInterceptor } from 'src/common/interceptor/log.interceptor';
 import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
 import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
 import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception-filter';
+import { Roles } from 'src/users/decorator/roles.decorator';
+import { RolesEnum } from 'src/users/const/roles.const';
+import { IsPublic } from 'src/common/decorator/is-public.decorator';
 
 @Controller('articles')
 export class ArticlesController {
@@ -42,7 +43,8 @@ export class ArticlesController {
   //    모든 articles를 다 가져온다.
 
   @Get()
-  // @UseInterceptors(LogInterceptor)
+  @IsPublic()
+  @UseInterceptors(LogInterceptor)
   // @UseFilters(HttpExceptionFilter)
   getArticles(@Query() query: PaginateArticleDto) {
     return this.articlesService.paginateArticles(query);
@@ -51,12 +53,12 @@ export class ArticlesController {
   // 2) GET /articles/:id
   //    id에 해당하는 articles를 가져온다.
   @Get(':id')
+  @IsPublic()
   getArticle(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.getArticleById(id);
   }
 
   @Post('random')
-  @UseGuards(AccessTokenGuard)
   async postPostArticles(@User() user: UserModel) {
     await this.articlesService.generateArticles(user.id);
 
@@ -76,7 +78,6 @@ export class ArticlesController {
   // commit -> 저장
   // rollback -> 원상 복구
   @Post()
-  @UseGuards(AccessTokenGuard)
   @UseInterceptors(TransactionInterceptor)
   async postArticle(
     @User('id') userId: number,
@@ -100,13 +101,14 @@ export class ArticlesController {
   }
 
   @Patch(':id')
-  putArticle(
+  patchArticle(
     @Param('id', ParseIntPipe) id: number,
     @Body() body: UpdateArticleDto,
   ) {
     return this.articlesService.updateArticle(id, body);
   }
   @Delete(':id')
+  @Roles(RolesEnum.ADMIN)
   deleteArticle(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.deleteArticle(id);
   }

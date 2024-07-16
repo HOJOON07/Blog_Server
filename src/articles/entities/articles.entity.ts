@@ -10,6 +10,7 @@ import { Transform } from 'class-transformer';
 import { join } from 'path';
 import { ARTICLES_PUBLIC_IMAGE_PATH } from 'src/common/const/path.const';
 import { ImageModel } from 'src/common/entities/image.entity';
+import { CommentsModel } from '../comments/entities/comment.entity';
 
 @Entity()
 export class ArticlesModel extends BaseModel {
@@ -69,4 +70,7 @@ export class ArticlesModel extends BaseModel {
   @IsEnum(ArticlePublishStateEnums)
   @IsString()
   isPublish: ArticlePublishStateEnums;
+
+  @OneToMany(() => CommentsModel, (comments) => comments.article)
+  comments: CommentsModel[];
 }

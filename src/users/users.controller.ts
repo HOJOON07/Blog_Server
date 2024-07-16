@@ -17,6 +17,8 @@ import { AccessTokenGuard } from 'src/auth/guard/bearer-token.guard';
 import { User } from './decorator/user.decorator';
 import { DuplicateDevNameDto } from './dto/duplicate-devname.dto';
 import { UserProfileEditDto } from './dto/user-profiles-edit.dto';
+import { Roles } from './decorator/roles.decorator';
+import { RolesEnum } from './const/roles.const';
 
 @Controller('users')
 export class UsersController {
@@ -36,6 +38,7 @@ export class UsersController {
    */
 
   @Get()
+  @Roles(RolesEnum.ADMIN)
   getAllUser() {
     return this.usersService.getAllUser();
   }
@@ -46,7 +49,6 @@ export class UsersController {
   }
 
   @Get('myinfo')
-  @UseGuards(AccessTokenGuard)
   getReturnMyInfo(@User('id') userId: number, @Request() req) {
     return this.usersService.getMyInfo(userId);
   }
@@ -57,7 +59,6 @@ export class UsersController {
   }
 
   @Post('duplicate')
-  @UseGuards(AccessTokenGuard)
   postDuplicateDevName(
     @User('id') id: number,
     @Body() duplicateDevNameDto: DuplicateDevNameDto,
@@ -66,7 +67,6 @@ export class UsersController {
   }
 
   @Patch('edit/:userId')
-  @UseGuards(AccessTokenGuard)
   patchtUserProfilesEdit(
     @User('id') id: number,
     @Body() userProfileEditDto: UserProfileEditDto,
@@ -75,7 +75,6 @@ export class UsersController {
   }
 
   @Patch('readme/:id')
-  @UseGuards(AccessTokenGuard)
   patchUserReadMe(@User('id') id: number, @Body('readme') readme: string) {
     return this.usersService.UserReadmeEdit(id, readme);
   }

@@ -17,6 +17,7 @@ import {
   RegisterUserDto,
 } from './dto/register-user.dto';
 import { GithubCodeDto } from './dto/register-github.dto';
+import { IsPublic } from 'src/common/decorator/is-public.decorator';
 
 @Controller('auth')
 export class AuthController {
@@ -51,6 +52,7 @@ export class AuthController {
   }
 
   @Post('login/email')
+  @IsPublic()
   @UseGuards(BasciTokenGuard)
   async postLoginEmail(
     @Headers('authorization') rawToken: string,
@@ -79,17 +81,20 @@ export class AuthController {
   }
 
   @Post('register/email')
+  @IsPublic()
   postRegisterEmail(@Body() body: RegisterUserDto) {
     return this.authService.registerWithEmail(body);
   }
 
   @Post('/github')
+  @IsPublic()
   postRegisterGithub(@Body() body: RegisterGithubUserDto) {
     // console.log(body);
     return this.authService.loginWithGithubOAuth(body);
   }
 
   @Post('/callback/github')
+  @IsPublic()
   async postOauthGithubLogin(@Body() githubCode: GithubCodeDto) {
     const userInfo = await this.authService.OAuthGithubLogin(githubCode);
 

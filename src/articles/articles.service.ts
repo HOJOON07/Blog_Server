@@ -149,4 +149,12 @@ export class ArticlesService {
 
     await this.articlesRepository.delete(articleId);
   }
+
+  async checkArticleExistById(id: number) {
+    return this.articlesRepository.exists({
+      where: {
+        id,
+      },
+    });
+  }
 }
