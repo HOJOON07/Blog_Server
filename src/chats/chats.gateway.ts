@@ -31,6 +31,7 @@ import { AuthService } from 'src/auth/auth.service';
 @WebSocketGateway({
   // ws://localhost:5500/chats
   namespace: 'chats',
+  cors: { origin: '*' },
 })
 export class ChatsGateway
   implements OnGatewayConnection, OnGatewayInit, OnGatewayDisconnect

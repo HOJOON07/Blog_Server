@@ -1,31 +1,19 @@
 import { PartialType, PickType } from '@nestjs/mapped-types';
 import { CreateArticleDto } from './create-article-dto';
-import { IsEnum, IsOptional, IsString } from 'class-validator';
-import {
-  ArticlePrivateStateEnums,
-  ArticlePublishStateEnums,
-} from '../const/article-state';
+import { IsOptional, IsString } from 'class-validator';
 
-export class UpdateArticleDto extends PartialType(CreateArticleDto) {
-  @IsString()
-  @IsOptional()
-  title?: string;
+class PickDto extends PickType(CreateArticleDto, [
+  'title',
+  'contents',
+  'description',
+  'isPublish',
+  'isPrivate',
+]) {}
 
-  @IsString()
+export class UpdateArticleDto extends PartialType(PickDto) {
+  @IsString({
+    each: true,
+  })
   @IsOptional()
-  contents?: string;
-
-  @IsString()
-  @IsOptional()
-  description?: string;
-
-  @IsEnum(ArticlePrivateStateEnums)
-  @IsString()
-  @IsOptional()
-  isPrivate?: ArticlePrivateStateEnums;
-
-  @IsEnum(ArticlePublishStateEnums)
-  @IsString()
-  @IsOptional()
-  isPublish?: ArticlePublishStateEnums;
+  thumbnails?: string[] = [];
 }

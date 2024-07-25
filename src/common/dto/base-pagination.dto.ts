@@ -21,7 +21,7 @@ export class BasePaginationDto {
   // 허용되는 값들 중 하나를 넣을 수 있는 ISIN, 무조건 하나는 들어와야함
   @IsIn(['ASC', 'DESC'])
   @IsOptional()
-  order__createdAt: 'ASC' | 'DESC' = 'ASC';
+  order__createdAt: 'ASC' | 'DESC' = 'DESC';
 
   //몇개 가져올 지.
   @IsNumber()

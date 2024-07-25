@@ -1,15 +1,18 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Param,
+  ParseBoolPipe,
   ParseIntPipe,
   Patch,
   Post,
   Query,
   Request,
   UseGuards,
+  UseInterceptors,
   UsePipes,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
@@ -19,6 +22,11 @@ import { DuplicateDevNameDto } from './dto/duplicate-devname.dto';
 import { UserProfileEditDto } from './dto/user-profiles-edit.dto';
 import { Roles } from './decorator/roles.decorator';
 import { RolesEnum } from './const/roles.const';
+import { UserModel } from './entities/users.entity';
+import { TransactionInterceptor } from 'src/common/interceptor/transaction.interceptor';
+import { QueryRunner } from 'src/common/decorator/query-runner.decorator';
+import { QueryRunner as QR } from 'typeorm';
+import { IsPublic } from 'src/common/decorator/is-public.decorator';
 
 @Controller('users')
 export class UsersController {
@@ -54,6 +62,7 @@ export class UsersController {
   }
 
   @Get('info')
+  @IsPublic()
   getReturnUserInfo(@Query('devName') devName: string) {
     return this.usersService.getUserInfo(devName);
   }
@@ -77,6 +86,71 @@ export class UsersController {
   @Patch('readme/:id')
   patchUserReadMe(@User('id') id: number, @Body('readme') readme: string) {
     return this.usersService.UserReadmeEdit(id, readme);
+  }
+
+  @Post('follow/:id')
+  async postFollowUser(
+    @User() user: UserModel,
+    @Param('id', ParseIntPipe) followeeId: number,
+  ) {
+    await this.usersService.followUser(user.id, followeeId);
+  }
+
+  @Get('follow/me')
+  async getFollow(
+    @User('id') userId: number,
+    @Query('includeNotConfirmed', new DefaultValuePipe(false), ParseBoolPipe)
+    includeNotConfirmed: boolean,
+  ) {
+    return this.usersService.getFollowers(userId, includeNotConfirmed);
+  }
+
+  @Patch('follow/:id/confirm')
+  @UseInterceptors(TransactionInterceptor)
+  async patchFollowConfirm(
+    @User() user: UserModel,
+    @Param('id', ParseIntPipe) followerId: number,
+    @QueryRunner() qr: QR,
+  ) {
+    this.usersService.confirmFollow(followerId, user.id, qr);
+
+    await this.usersService.incrementFollowerCount(
+      user.id,
+      'followerCount',
+      1,
+      qr,
+    );
+
+    await this.usersService.incrementFollowerCount(
+      followerId,
+      'followeeCount',
+      1,
+      qr,
+    );
+    return true;
+  }
+
+  @Delete('follow/:id')
+  @UseInterceptors(TransactionInterceptor)
+  async deleteFollow(
+    @User() user: UserModel,
+    @Param('id', ParseIntPipe) followeeId: number,
+    @QueryRunner() qr: QR,
+  ) {
+    await this.usersService.deleteFollow(user.id, followeeId, qr);
+    await this.usersService.decrementFollowerCount(
+      user.id,
+      'followerCount',
+      1,
+      qr,
+    );
+    await this.usersService.decrementFollowerCount(
+      followeeId,
+      'followeeCount',
+      1,
+      qr,
+    );
+    return true;
   }
 
   // @Get('readme')

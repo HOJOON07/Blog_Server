@@ -311,10 +311,10 @@ export class AuthService {
     return this.loginUser(newUser);
   }
 
-  async getGithubAccessToken(githubcode: string) {
+  async getGithubAccessToken(githubCode: string) {
     const getTokenUrl: string = 'https://github.com/login/oauth/access_token';
     const request = {
-      code: githubcode,
+      code: githubCode,
       client_id: this.configService.get<string>(ENV_GITHUB_CLIENT_ID),
       client_secret: this.configService.get<string>(ENV_GITHUB_CLIENT_SECRET),
     };

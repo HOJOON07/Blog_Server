@@ -31,6 +31,8 @@ import { HttpExceptionFilter } from 'src/common/exception-filter/http-exception-
 import { Roles } from 'src/users/decorator/roles.decorator';
 import { RolesEnum } from 'src/users/const/roles.const';
 import { IsPublic } from 'src/common/decorator/is-public.decorator';
+import { IsArticleMineOrAdminGuard } from './guard/is-article-mine-or-admin.guard';
+import { PaginateWorkspaceArticleDto } from './dto/paginate-workspace-articles-dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -41,6 +43,15 @@ export class ArticlesController {
   ) {}
   // 1) GET / articles
   //    모든 articles를 다 가져온다.
+
+  @Get('workspace')
+  @UseInterceptors(LogInterceptor)
+  getWorkspaceArticles(
+    @Query() query: PaginateWorkspaceArticleDto,
+    @User('id') userId: number,
+  ) {
+    return this.articlesService.paginateWorkspaceArticles(query, userId);
+  }
 
   @Get()
   @IsPublic()
@@ -54,16 +65,21 @@ export class ArticlesController {
   //    id에 해당하는 articles를 가져온다.
   @Get(':id')
   @IsPublic()
-  getArticle(@Param('id', ParseIntPipe) id: number) {
+  getArticleById(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.getArticleById(id);
   }
 
-  @Post('random')
-  async postPostArticles(@User() user: UserModel) {
-    await this.articlesService.generateArticles(user.id);
-
-    return true;
+  @Get('workspace/:id')
+  getWorkspaceArticleById(@Param('id', ParseIntPipe) id: number) {
+    return this.articlesService.getWorkspaceArticleById(id);
   }
+
+  // @Post('random')
+  // async postPostArticles(@User() user: UserModel) {
+  //   await this.articlesService.generateArticles(user.id);
+
+  //   return true;
+  // }
   // POST /articles
 
   // POST API -> A모델을 정의하고 ,B모델을 저장한다.
@@ -79,7 +95,7 @@ export class ArticlesController {
   // rollback -> 원상 복구
   @Post()
   @UseInterceptors(TransactionInterceptor)
-  async postArticle(
+  async postCreateArticle(
     @User('id') userId: number,
     @Body() body: CreateArticleDto,
     @QueryRunner() qr: QR,
@@ -100,14 +116,31 @@ export class ArticlesController {
     return this.articlesService.getArticleById(article.id, qr);
   }
 
-  @Patch(':id')
-  patchArticle(
-    @Param('id', ParseIntPipe) id: number,
+  @Patch(':articleId')
+  @UseInterceptors(TransactionInterceptor)
+  @UseGuards(IsArticleMineOrAdminGuard)
+  async patchEditArticle(
+    @Param('articleId', ParseIntPipe) id: number,
     @Body() body: UpdateArticleDto,
+    @QueryRunner() qr: QR,
   ) {
-    return this.articlesService.updateArticle(id, body);
+    const article = await this.articlesService.updateArticle(id, body, qr);
+
+    for (let i = 0; i < body.thumbnails.length; i++) {
+      await this.articlesThumbnailService.createArticleThumbnail(
+        {
+          article,
+          order: i,
+          path: body.thumbnails[i],
+          type: ImageModelType.ARTICLE_IMAGE,
+        },
+        qr,
+      );
+    }
+    return this.articlesService.getArticleById(article.id, qr);
   }
   @Delete(':id')
+  @UseGuards(IsArticleMineOrAdminGuard)
   @Roles(RolesEnum.ADMIN)
   deleteArticle(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.deleteArticle(id);

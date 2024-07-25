@@ -1,15 +1,12 @@
-import { IsBoolean, IsEnum, IsOptional, IsString } from 'class-validator';
-import {
-  ArticlePrivateStateEnums,
-  ArticlePublishStateEnums,
-} from '../const/article-state';
+import { IsOptional, IsString } from 'class-validator';
+
 import { PickType } from '@nestjs/mapped-types';
 import { ArticlesModel } from '../entities/articles.entity';
 
 export class CreateArticleDto extends PickType(ArticlesModel, [
   'title',
-  'contents',
   'description',
+  'contents',
   'isPrivate',
   'isPublish',
 ]) {

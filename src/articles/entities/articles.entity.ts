@@ -5,7 +5,14 @@ import {
   ArticlePrivateStateEnums,
   ArticlePublishStateEnums,
 } from '../const/article-state';
-import { IsEnum, IsNumber, IsString, isString } from 'class-validator';
+import {
+  IsArray,
+  IsEnum,
+  IsJSON,
+  IsNumber,
+  IsString,
+  isString,
+} from 'class-validator';
 import { Transform } from 'class-transformer';
 import { join } from 'path';
 import { ARTICLES_PUBLIC_IMAGE_PATH } from 'src/common/const/path.const';
@@ -35,9 +42,11 @@ export class ArticlesModel extends BaseModel {
   @IsString()
   description: string;
 
-  @Column()
-  @IsString()
-  contents: string;
+  ///컨텐츠
+  @Column({ type: 'jsonb' })
+  @IsArray()
+  contents: any;
+  ///컨텐츠
 
   @Column({
     nullable: false,

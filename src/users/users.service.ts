@@ -6,18 +6,33 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from './entities/users.entity';
-import { Repository } from 'typeorm';
+import { QueryRunner, Repository } from 'typeorm';
 import { GithubBasicInfoUserDto } from 'src/auth/dto/register-github.dto';
 import { RegisterGithubUserDto } from 'src/auth/dto/register-user.dto';
 import { DuplicateDevNameDto } from './dto/duplicate-devname.dto';
 import { UserProfileEditDto } from './dto/user-profiles-edit.dto';
+import { UserFollowersModel } from './entities/user-followers.entity';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(UserModel)
     private readonly userRepository: Repository<UserModel>,
+    @InjectRepository(UserFollowersModel)
+    private readonly userFollowersRepository: Repository<UserFollowersModel>,
   ) {}
+
+  getUsersRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<UserModel>(UserModel)
+      : this.userRepository;
+  }
+
+  getUserFollowRepository(qr?: QueryRunner) {
+    return qr
+      ? qr.manager.getRepository<UserFollowersModel>(UserFollowersModel)
+      : this.userFollowersRepository;
+  }
 
   async createUser(email: string, password: string, devName: string) {
     // name 중복을 찾아야 함.
@@ -157,6 +172,8 @@ export class UsersService {
         'socialEtc',
         'github',
         'readme',
+        'followerCount',
+        'followeeCount',
       ],
       where: { devName },
     });
@@ -257,5 +274,132 @@ export class UsersService {
     }
 
     return JSON.parse(userProfileReadMeData.readme);
+  }
+
+  async followUser(followerId: number, followeeId: number, qr?: QueryRunner) {
+    const userFollowersRepository = this.getUserFollowRepository(qr);
+    // follower: 팔로우 요청을 보내는 유저입니다. UserModel과 다대일(ManyToOne) 관계를 맺고 있습니다.
+    // followee: 팔로우 요청을 받는 유저입니다. UserModel과 다대일(ManyToOne) 관계를 맺고 있습니다.
+
+    const result = await userFollowersRepository.save({
+      follower: {
+        id: followerId,
+      },
+      followee: {
+        id: followeeId,
+      },
+    });
+    return true;
+  }
+
+  async getFollowers(userId: number, includeNotConfirmed: boolean) {
+    // 로그인한 사용자의 id => userId
+    const where = {
+      followee: {
+        id: userId,
+      },
+    };
+
+    if (!includeNotConfirmed) {
+      where['isConfirmed'] = true;
+    }
+
+    const result = await this.userFollowersRepository.find({
+      // 팔로우 데이터 테이블에서 팔로우 당하고 있는 나의 정보를 찾는것.
+      // 즉, followee 컬럼에서 내 id값들을 조회하고
+      // follower 컬럼은 나를 팔로우하고 있는 유저의 id들이다.
+      // result는 find메서드이기 때문에 데이터 배열이고 거기서 follower들의 데이터를 보내주면 나를
+      // 팔로우하고 있는 유저의 정보를 리턴 해주는 것.
+      where,
+      relations: {
+        follower: true,
+        followee: true,
+      },
+    });
+    // return result.map((user) => user.follower);
+    return result.map((user) => ({
+      id: user.follower.id,
+      devName: user.follower.devName,
+      email: user.follower.email,
+      isConfirmed: user.isConfirmed,
+    }));
+  }
+
+  async confirmFollow(
+    followerId: number,
+    followeeId: number,
+    qr?: QueryRunner,
+  ) {
+    const userFollowersRepository = this.getUserFollowRepository(qr);
+    const existingFollowRequest = await userFollowersRepository.findOne({
+      where: {
+        follower: {
+          id: followerId,
+        },
+        followee: {
+          id: followeeId,
+        },
+      },
+      relations: {
+        follower: true,
+        followee: true,
+      },
+    });
+    if (!existingFollowRequest) {
+      throw new BadRequestException('존재하지 않는 팔로우 요청입니다.');
+    }
+
+    await this.userFollowersRepository.save({
+      ...existingFollowRequest,
+      isConfirmed: true,
+    });
+    return true;
+  }
+
+  async deleteFollow(followerId: number, followeeId: number, qr?: QueryRunner) {
+    const userFollowersRepository = this.getUserFollowRepository(qr);
+    await userFollowersRepository.delete({
+      follower: {
+        id: followerId,
+      },
+      followee: {
+        id: followeeId,
+      },
+    });
+    return true;
+  }
+
+  async incrementFollowerCount(
+    userId: number,
+    fieldName: keyof Pick<UserModel, 'followerCount' | 'followeeCount'>,
+    incrementCount: number,
+    qr?: QueryRunner,
+  ) {
+    const usersRepository = this.getUsersRepository(qr);
+
+    await usersRepository.increment(
+      {
+        id: userId,
+      },
+      fieldName,
+      incrementCount,
+    );
+  }
+
+  async decrementFollowerCount(
+    userId: number,
+    fieldName: keyof Pick<UserModel, 'followerCount' | 'followeeCount'>,
+    decrementCount: number,
+    qr?: QueryRunner,
+  ) {
+    const usersRepository = this.getUsersRepository(qr);
+
+    await usersRepository.decrement(
+      {
+        id: userId,
+      },
+      fieldName,
+      decrementCount,
+    );
   }
 }

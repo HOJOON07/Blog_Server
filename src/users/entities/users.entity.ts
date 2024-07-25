@@ -15,6 +15,7 @@ import { Exclude, Expose } from 'class-transformer';
 import { ChatsModel } from 'src/chats/entities/chats.entity';
 import { MessagesModel } from 'src/chats/messages/entities/messages.entity';
 import { CommentsModel } from 'src/articles/comments/entities/comment.entity';
+import { UserFollowersModel } from './user-followers.entity';
 
 @Entity()
 export class UserModel extends BaseModel {
@@ -127,4 +128,22 @@ export class UserModel extends BaseModel {
 
   @OneToMany(() => CommentsModel, (comments) => comments.author)
   articlesComments: CommentsModel[];
+  // 내가 팔로우 하는 사람
+  @OneToMany(() => UserFollowersModel, (ufm) => ufm.follower)
+  @JoinTable()
+  followers: UserFollowersModel[];
+
+  // 나를 팔로우 하는 사람
+  @OneToMany(() => UserFollowersModel, (ufm) => ufm.followee)
+  followees: UserFollowersModel[];
+
+  @Column({
+    default: 0,
+  })
+  followerCount: number;
+
+  @Column({
+    default: 0,
+  })
+  followeeCount: number;
 }

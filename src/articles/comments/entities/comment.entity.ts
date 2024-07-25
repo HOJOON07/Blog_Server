@@ -1,4 +1,4 @@
-import { IsNumber, IsString } from 'class-validator';
+import { IsArray, IsNumber, IsString } from 'class-validator';
 import { ArticlesModel } from 'src/articles/entities/articles.entity';
 import { BaseModel } from 'src/common/entities/base.entity';
 import { UserModel } from 'src/users/entities/users.entity';
@@ -12,9 +12,9 @@ export class CommentsModel extends BaseModel {
   @ManyToOne(() => ArticlesModel, (article) => article.comments)
   article: ArticlesModel;
 
-  @Column()
-  @IsString()
-  comment: string;
+  @Column({ type: 'jsonb' })
+  @IsArray()
+  comment: any;
 
   @Column({
     default: 0,
