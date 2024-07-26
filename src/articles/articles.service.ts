@@ -235,4 +235,61 @@ export class ArticlesService {
       relations: { author: true },
     });
   }
+
+  async getArticleByAuthorId(authorId: number) {
+    const articles = await this.articlesRepository.find({
+      where: {
+        author: {
+          id: authorId,
+        },
+      },
+      order: {
+        createdAt: 'DESC',
+      },
+      take: 3,
+      select: {
+        createdAt: true,
+        title: true,
+        description: true,
+        id: true,
+        thumbnails: true,
+      },
+    });
+    return articles;
+  }
+
+  async getArticlesAuthor(id: number) {
+    const articlesAuthor = await this.articlesRepository.findOne({
+      where: {
+        id,
+      },
+      relations: { author: true },
+      select: {
+        id: true,
+        author: {
+          id: true,
+          devName: true,
+          position: true,
+          bio: true,
+          followeeCount: true,
+          followerCount: true,
+          location: true,
+          github: true,
+          linkedin: true,
+          instagram: true,
+          socialEtc: true,
+          email: true,
+        },
+      },
+    });
+
+    const authorId = articlesAuthor.author.id;
+
+    const articles = await this.getArticleByAuthorId(authorId);
+
+    if (!articlesAuthor) {
+      throw new NotFoundException('아티클을 찾을 수 없습니다.');
+    }
+    return { author: articlesAuthor, articles };
+  }
 }

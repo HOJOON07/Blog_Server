@@ -44,6 +44,13 @@ export class ArticlesController {
   // 1) GET / articles
   //    모든 articles를 다 가져온다.
 
+  @Get('author/:id')
+  @UseInterceptors(LogInterceptor)
+  @IsPublic()
+  async getArticlesAuthor(@Param('id', ParseIntPipe) id: number) {
+    return await this.articlesService.getArticlesAuthor(id);
+  }
+
   @Get('workspace')
   @UseInterceptors(LogInterceptor)
   getWorkspaceArticles(
@@ -69,6 +76,7 @@ export class ArticlesController {
     return this.articlesService.getArticleById(id);
   }
 
+  // article Id를 주면 author 정보를 가져온다.
   @Get('workspace/:id')
   getWorkspaceArticleById(@Param('id', ParseIntPipe) id: number) {
     return this.articlesService.getWorkspaceArticleById(id);
