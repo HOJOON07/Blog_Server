@@ -24,19 +24,20 @@ export class CommentsService {
   }
 
   paginateComments(dto: PaginateCommentsDto, articleId: number) {
+    const where = {
+      article: { id: articleId },
+    };
     return this.commonService.paginate(
       dto,
       this.commentsRepository,
       {
-        where: {
-          article: { id: articleId },
-        },
         relations: {
           author: true,
         },
         select: {
           author: { id: true, devName: true },
         },
+        ...where,
       },
       `articles/${articleId}/comments`,
     );
