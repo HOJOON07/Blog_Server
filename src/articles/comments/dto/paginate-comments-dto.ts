@@ -16,5 +16,5 @@ export class PaginateCommentsDto extends PickType(BasePaginationDto, [
   @IsNumber()
   @Type(() => Number)
   @IsOptional()
-  take?: number = 12;
+  take?: number = 10;
 }

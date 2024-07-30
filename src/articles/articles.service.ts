@@ -1,5 +1,9 @@
 import { DEFAULT_ARTICLES_FIND_OPTIONS } from './const/default-article-find-options';
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { QueryRunner, Repository } from 'typeorm';
 import { ArticlesModel } from './entities/articles.entity';
@@ -15,6 +19,8 @@ import { CommonService } from 'src/common/common.service';
 
 import { ImageModel } from 'src/common/entities/image.entity';
 import { PaginateWorkspaceArticleDto } from './dto/paginate-workspace-articles-dto';
+import { PaginateUserPublicArticleDto } from './dto/paginate-user-public-article-dto';
+import { UserModel } from 'src/users/entities/users.entity';
 
 @Injectable()
 export class ArticlesService {
@@ -24,6 +30,9 @@ export class ArticlesService {
     private readonly commonService: CommonService,
     @InjectRepository(ImageModel)
     private readonly imageRepository: Repository<ImageModel>,
+
+    @InjectRepository(UserModel)
+    private readonly userRepository: Repository<UserModel>,
   ) {}
 
   getRepository(qr?: QueryRunner) {
@@ -64,12 +73,7 @@ export class ArticlesService {
     dto: PaginateWorkspaceArticleDto,
     userId: number,
   ) {
-    const where = {
-      author: {
-        id: userId,
-      },
-    };
-    return this.commonService.paginate(
+    return await this.commonService.paginate(
       dto,
       this.articlesRepository,
       {
@@ -81,13 +85,59 @@ export class ArticlesService {
           createdAt: true,
           updatedAt: true,
         },
-        ...where,
+        // ...where,
+        where: {
+          author: {
+            id: userId,
+          },
+        },
       },
       'articles/workspace',
     );
   }
 
-  async getArticleById(id: number, qr?: QueryRunner) {
+  async paginateUserPublicArticles(dto: PaginateUserPublicArticleDto) {
+    const exists = await this.userRepository.exists({
+      where: {
+        devName: dto.devName,
+      },
+    });
+
+    if (!exists) {
+      throw new BadRequestException('유저 정보를 찾을 수 없습니다.');
+    }
+
+    return await this.commonService.paginate(
+      dto,
+      this.articlesRepository,
+      {
+        relations: {
+          author: true,
+          thumbnails: true,
+        },
+        select: {
+          id: true,
+          author: {
+            devName: true,
+          },
+          title: true,
+          description: true,
+          createdAt: true,
+          likeCount: true,
+          commentCount: true,
+          thumbnails: true,
+        },
+        where: {
+          author: {
+            devName: dto.devName,
+          },
+        },
+      },
+      'articles/users',
+    );
+  }
+
+  async getPublicArticleById(id: number, qr?: QueryRunner) {
     const repository = this.getRepository(qr);
     const article = await repository.findOne({
       // ...DEFAULT_ARTICLES_FIND_OPTIONS,
@@ -100,6 +150,24 @@ export class ArticlesService {
       // author의 대한 정보도 같이
     });
 
+    if (!article) {
+      // return false;
+      throw new NotFoundException();
+    }
+
+    return article;
+  }
+
+  async getPrivateArticleById(id: number, qr?: QueryRunner) {
+    const repository = this.getRepository(qr);
+    const article = await repository.findOne({
+      // ...DEFAULT_ARTICLES_FIND_OPTIONS,
+      where: {
+        // 입력받은 id가 데이터베이스에 있는 id와 같은 값인지.
+        id,
+      },
+      // author의 대한 정보도 같이
+    });
     if (!article) {
       // return false;
       throw new NotFoundException();
@@ -291,5 +359,58 @@ export class ArticlesService {
       throw new NotFoundException('아티클을 찾을 수 없습니다.');
     }
     return { author: articlesAuthor, articles };
+  }
+
+  async test() {
+    const where = {
+      isPrivate: 'open',
+      isPublish: 'publish',
+      title: {
+        _type: 'ilike',
+        _value: '%22%',
+        _useParameter: true,
+        _multipleParameters: false,
+        _getSql: undefined,
+        _objectLiteralParameters: undefined,
+      },
+      description: {
+        _type: 'ilike',
+        _value: '%22%',
+        _useParameter: true,
+        _multipleParameters: false,
+        _getSql: undefined,
+        _objectLiteralParameters: undefined,
+      },
+      author: { devName: 'test1' },
+    };
+
+    const orWhere = [
+      {
+        isPrivate: 'open',
+        isPublish: 'publish',
+        title: {
+          _type: 'ilike',
+          _value: '%22%',
+          _useParameter: true,
+          _multipleParameters: false,
+          _getSql: undefined,
+          _objectLiteralParameters: undefined,
+        },
+        author: { devName: 'test1' },
+      },
+      {
+        isPrivate: 'open',
+        isPublish: 'publish',
+        description: {
+          _type: 'ilike',
+          _value: '%22%',
+          _useParameter: true,
+          _multipleParameters: false,
+          _getSql: undefined,
+          _objectLiteralParameters: undefined,
+        },
+        author: { devName: 'test1' },
+      },
+    ];
   }
 }

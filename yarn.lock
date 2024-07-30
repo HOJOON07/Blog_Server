@@ -1760,6 +1760,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/lodash.merge@npm:^4":
+  version: 4.6.9
+  resolution: "@types/lodash.merge@npm:4.6.9"
+  dependencies:
+    "@types/lodash": "npm:*"
+  checksum: 10c0/2e2ccacdceb2e23343a514e8c24540fc4e1f1ffd616b645eb72ec685da9389d99a2544f04d61921e46a6768f8cc0fe5f58d4f7edaba9bc50552f0ca7df905e83
+  languageName: node
+  linkType: hard
+
+"@types/lodash@npm:*":
+  version: 4.17.7
+  resolution: "@types/lodash@npm:4.17.7"
+  checksum: 10c0/40c965b5ffdcf7ff5c9105307ee08b782da228c01b5c0529122c554c64f6b7168fc8f11dc79aa7bae4e67e17efafaba685dc3a47e294dbf52a65ed2b67100561
+  languageName: node
+  linkType: hard
+
 "@types/lodash@npm:^4":
   version: 4.17.6
   resolution: "@types/lodash@npm:4.17.6"
@@ -9038,6 +9054,7 @@ __metadata:
     "@types/express": "npm:^4.17.17"
     "@types/jest": "npm:^29.5.2"
     "@types/lodash": "npm:^4"
+    "@types/lodash.merge": "npm:^4"
     "@types/multer": "npm:^1.4.11"
     "@types/node": "npm:^20.3.1"
     "@types/nodemailer": "npm:^6.4.15"
@@ -9058,6 +9075,7 @@ __metadata:
     express: "npm:^4.19.2"
     jest: "npm:^29.5.0"
     lodash: "npm:^4.17.21"
+    lodash.merge: "npm:^4.6.2"
     multer: "npm:^1.4.5-lts.1"
     nodemailer: "npm:^6.9.14"
     pg: "npm:^8.12.0"

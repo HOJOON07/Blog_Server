@@ -9,6 +9,8 @@ import {
 import { BaseModel } from './entities/base.entity';
 import { FILTER_MAPPER } from './const/filter-mapper.const';
 import { HOST, PROTOCOL } from './const/env.const';
+import { mergeWith } from 'lodash';
+import { PaginateArticleDto } from 'src/articles/dto/paginate-article.dto';
 
 @Injectable()
 export class CommonService {
@@ -25,6 +27,33 @@ export class CommonService {
     }
   }
 
+  private transformWhereToArray<T>(where: any): FindOptionsWhere<T>[] {
+    if (!where) return [];
+
+    const { title, description, ...rest } = where;
+    const conditions = [];
+
+    if (!title && !description) {
+      return where;
+    }
+
+    if (title) {
+      conditions.push({
+        title,
+        ...rest,
+      });
+    }
+
+    if (description) {
+      conditions.push({
+        description,
+        ...rest,
+      });
+    }
+
+    return conditions;
+  }
+
   private async pagePaginate<T extends BaseModel>(
     dto: BasePaginationDto,
     repository: Repository<T>,
@@ -32,9 +61,28 @@ export class CommonService {
   ) {
     const findOptions = this.composeFindOptions<T>(dto);
 
+    const mergeWithFindOptions = mergeWith(
+      {},
+      findOptions,
+      overrideFindOptions,
+      (objValue, srcValue, key, object, source, stack) => {
+        if (key === 'where') {
+          return { ...objValue, ...srcValue };
+        }
+      },
+    );
+
+    mergeWithFindOptions.where = this.transformWhereToArray(
+      mergeWithFindOptions.where,
+    );
+    console.log(mergeWithFindOptions);
+
+    // const [data, count] = await repository.findAndCount({
+    //   ...findOptions,
+    //   ...overrideFindOptions,
+    // });
     const [data, count] = await repository.findAndCount({
-      ...findOptions,
-      ...overrideFindOptions,
+      ...mergeWithFindOptions,
     });
 
     return {
@@ -49,11 +97,30 @@ export class CommonService {
     overrideFindOptions: FindManyOptions<T> = {},
     path: string,
   ) {
-    const findOptions = this.composeFindOptions<T>(dto);
-
-    const results = await repository.find({
+    /** 덮어 쓰기 위한다면 이 코드를.
+     *const results = await repository.find({
       ...findOptions,
       ...overrideFindOptions,
+    })
+    */
+    const findOptions = this.composeFindOptions<T>(dto);
+    const mergeWithFindOptions = mergeWith(
+      {},
+      findOptions,
+      overrideFindOptions,
+      (objValue, srcValue, key, object, source, stack) => {
+        if (key === 'where') {
+          return { ...objValue, ...srcValue };
+        }
+      },
+    );
+    mergeWithFindOptions.where = this.transformWhereToArray(
+      mergeWithFindOptions.where,
+    );
+    console.log(mergeWithFindOptions);
+
+    const results = await repository.find({
+      ...mergeWithFindOptions,
     });
 
     const lastItem =
@@ -152,6 +219,7 @@ export class CommonService {
         options[field] = FILTER_MAPPER[operator](value);
       }
     }
+
     return options;
   }
 

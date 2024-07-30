@@ -91,7 +91,6 @@ export class AuthController {
   @Post('/github')
   @IsPublic()
   postRegisterGithub(@Body() body: RegisterGithubUserDto) {
-    // console.log(body);
     return this.authService.loginWithGithubOAuth(body);
   }
 

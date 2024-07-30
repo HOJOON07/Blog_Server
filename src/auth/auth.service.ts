@@ -203,6 +203,7 @@ export class AuthService {
 
     if (!existingUser) {
       //없으면 회원가입
+
       const newUser = await this.userService.createGithubUser(user);
       return newUser;
     }
@@ -363,6 +364,7 @@ export class AuthService {
         company,
         socialEtc: blog,
       };
+
       return { ...basicGithubUserInfo, access_token };
     } catch (error) {
       console.error(

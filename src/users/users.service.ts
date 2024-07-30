@@ -130,8 +130,10 @@ export class UsersService {
 
     const newUser = this.userRepository.create({
       email,
-      ...rest,
+      // 여기서 devName 생성해줘야 된다.
+      devName,
     });
+
     return await this.userRepository.save(newUser);
   }
 
@@ -171,7 +173,7 @@ export class UsersService {
         'role',
         'socialEtc',
         'github',
-        'readme',
+        // 'readme',
         'followerCount',
         'followeeCount',
       ],
@@ -263,17 +265,18 @@ export class UsersService {
     return newReadmeProfileData;
   }
 
-  async userReadmeGet(id: number) {
+  async getUserOverview(devName: string) {
     const userProfileReadMeData = await this.userRepository.findOne({
-      select: ['readme'],
-      where: { id },
+      select: ['readme', 'github'],
+      where: { devName },
     });
 
     if (!userProfileReadMeData) {
-      throw new Error('유저의 리드미 정보가 없습니다.!');
+      return null;
+      // throw new Error('유저의 리드미 정보가 없습니다.!');
     }
 
-    return JSON.parse(userProfileReadMeData.readme);
+    return userProfileReadMeData;
   }
 
   async followUser(followerId: number, followeeId: number, qr?: QueryRunner) {

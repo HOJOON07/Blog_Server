@@ -33,6 +33,7 @@ import { RolesEnum } from 'src/users/const/roles.const';
 import { IsPublic } from 'src/common/decorator/is-public.decorator';
 import { IsArticleMineOrAdminGuard } from './guard/is-article-mine-or-admin.guard';
 import { PaginateWorkspaceArticleDto } from './dto/paginate-workspace-articles-dto';
+import { PaginateUserPublicArticleDto } from './dto/paginate-user-public-article-dto';
 
 @Controller('articles')
 export class ArticlesController {
@@ -49,6 +50,16 @@ export class ArticlesController {
   @IsPublic()
   async getArticlesAuthor(@Param('id', ParseIntPipe) id: number) {
     return await this.articlesService.getArticlesAuthor(id);
+  }
+
+  @Get('users')
+  @UseInterceptors(LogInterceptor)
+  @IsPublic()
+  getUserPublicArticles(
+    @Query() query: PaginateUserPublicArticleDto,
+    // @Query() devName: string,
+  ) {
+    return this.articlesService.paginateUserPublicArticles(query);
   }
 
   @Get('workspace')
@@ -73,7 +84,7 @@ export class ArticlesController {
   @Get(':id')
   @IsPublic()
   getArticleById(@Param('id', ParseIntPipe) id: number) {
-    return this.articlesService.getArticleById(id);
+    return this.articlesService.getPublicArticleById(id);
   }
 
   // article Id를 주면 author 정보를 가져온다.
@@ -121,7 +132,7 @@ export class ArticlesController {
         qr,
       );
     }
-    return this.articlesService.getArticleById(article.id, qr);
+    return this.articlesService.getPrivateArticleById(article.id, qr);
   }
 
   @Patch(':articleId')
@@ -145,7 +156,7 @@ export class ArticlesController {
         qr,
       );
     }
-    return this.articlesService.getArticleById(article.id, qr);
+    return this.articlesService.getPrivateArticleById(article.id, qr);
   }
   @Delete(':id')
   @UseGuards(IsArticleMineOrAdminGuard)

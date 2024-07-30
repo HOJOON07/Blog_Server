@@ -5,17 +5,8 @@ import {
   ArticlePrivateStateEnums,
   ArticlePublishStateEnums,
 } from '../const/article-state';
-import {
-  IsArray,
-  IsEnum,
-  IsJSON,
-  IsNumber,
-  IsString,
-  isString,
-} from 'class-validator';
+import { IsArray, IsEnum, IsNumber, IsString } from 'class-validator';
 import { Transform } from 'class-transformer';
-import { join } from 'path';
-import { ARTICLES_PUBLIC_IMAGE_PATH } from 'src/common/const/path.const';
 import { ImageModel } from 'src/common/entities/image.entity';
 import { CommentsModel } from '../comments/entities/comment.entity';
 

@@ -19,8 +19,6 @@ export class TransactionInterceptor implements NestInterceptor {
   ): Promise<Observable<any>> {
     const request = context.switchToHttp().getRequest();
 
-    console.log(request);
-
     // 트랜잭션과 관련되 모든 쿼리를 담당할
     // 쿼리 러너를 생성한다.
     const qr = this.dataSource.createQueryRunner();
@@ -38,7 +36,7 @@ export class TransactionInterceptor implements NestInterceptor {
       catchError(async (e) => {
         await qr.rollbackTransaction();
         await qr.release();
-
+        console.log(e);
         throw new InternalServerErrorException('qr 인터널 에러', e.message);
       }),
       tap(async () => {

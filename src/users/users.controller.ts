@@ -88,6 +88,12 @@ export class UsersController {
     return this.usersService.UserReadmeEdit(id, readme);
   }
 
+  @Get('overview')
+  @IsPublic()
+  getUserOverview(@Query('devName') devName: string) {
+    return this.usersService.getUserOverview(devName);
+  }
+
   @Post('follow/:id')
   async postFollowUser(
     @User() user: UserModel,
@@ -152,12 +158,6 @@ export class UsersController {
     );
     return true;
   }
-
-  // @Get('readme')
-  // @UseGuards(AccessTokenGuard)
-  // getUserReadMe(@User('id') id: number) {
-  //   return this.usersService.userReadmeGet(id);
-  // }
 
   // @Post("edit")
   // @UseGuards(AccessTokenGuard)

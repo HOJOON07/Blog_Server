@@ -15,10 +15,11 @@ import { CommonModule } from 'src/common/common.module';
 import { ImageModel } from 'src/common/entities/image.entity';
 import { ArticlesThumbnailService } from './thumbnail/dto/thumbnail.service';
 import { LogMiddleWare } from 'src/common/middleware/log.middleware';
+import { UserModel } from 'src/users/entities/users.entity';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([ArticlesModel, ImageModel]),
+    TypeOrmModule.forFeature([ArticlesModel, ImageModel, UserModel]),
     AuthModule,
     UsersModule,
     CommonModule,
