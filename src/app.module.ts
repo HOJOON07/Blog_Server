@@ -30,6 +30,7 @@ import { CommentsModel } from './articles/comments/entities/comment.entity';
 import { RolesGuard } from './users/guard/roles.guard';
 import { AccessTokenGuard } from './auth/guard/bearer-token.guard';
 import { UserFollowersModel } from './users/entities/user-followers.entity';
+import { AwsS3UploadModule } from './aws_s3_upload/aws_s3_upload.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { UserFollowersModel } from './users/entities/user-followers.entity';
     MailModule,
     ChatsModule,
     CommentsModule,
+    AwsS3UploadModule,
   ],
   controllers: [AppController],
   providers: [

@@ -3,6 +3,7 @@ import {
   BadRequestException,
   Injectable,
   NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { UserModel } from './entities/users.entity';
@@ -152,6 +153,7 @@ export class UsersService {
         'role',
         'socialEtc',
         'github',
+        'image',
       ],
       where: { id: userId },
     });
@@ -176,6 +178,7 @@ export class UsersService {
         // 'readme',
         'followerCount',
         'followeeCount',
+        'image',
       ],
       where: { devName },
     });
@@ -193,7 +196,7 @@ export class UsersService {
     }
 
     if (currentUser.devName === devName) {
-      return { message: '현재 사용하고 있는 데브월드 이름입니다.' };
+      return { message: '현재 회원님이 사용하고 있는 데브월드 이름입니다.' };
     }
 
     const duplicated = await this.userRepository.exists({
@@ -246,6 +249,24 @@ export class UsersService {
     const newUserProfile = await this.userRepository.save(userProfileData);
 
     return newUserProfile;
+  }
+
+  async userImageEdit(userId: number, image: string, qr: QueryRunner) {
+    const userRepository = this.getUsersRepository(qr);
+
+    const userProfileData = await userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+
+    if (image) {
+      userProfileData.image = image;
+    }
+
+    const newProfileImageData = await userRepository.save(userProfileData);
+
+    return newProfileImageData;
   }
 
   async UserReadmeEdit(id: number, readme: string) {

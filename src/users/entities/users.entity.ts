@@ -146,4 +146,9 @@ export class UserModel extends BaseModel {
     default: 0,
   })
   followeeCount: number;
+
+  @Column({
+    nullable: true,
+  })
+  image: string;
 }

@@ -19,7 +19,6 @@ import {
   RegisterGithubUserDto,
   RegisterUserDto,
 } from './dto/register-user.dto';
-import { ChildEntity } from 'typeorm';
 import {
   GithubBasicInfoUserDto,
   GithubCodeDto,

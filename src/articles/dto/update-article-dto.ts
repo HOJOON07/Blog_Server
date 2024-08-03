@@ -16,4 +16,7 @@ export class UpdateArticleDto extends PartialType(PickDto) {
   })
   @IsOptional()
   thumbnails?: string[] = [];
+
+  @IsOptional()
+  articleImage?: string;
 }

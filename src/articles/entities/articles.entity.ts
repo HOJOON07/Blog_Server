@@ -33,6 +33,10 @@ export class ArticlesModel extends BaseModel {
   @IsString()
   description: string;
 
+  @Column({ nullable: true })
+  @IsString()
+  articleImage: string;
+
   ///컨텐츠
   @Column({ type: 'jsonb' })
   @IsArray()

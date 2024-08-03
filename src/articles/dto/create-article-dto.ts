@@ -15,4 +15,7 @@ export class CreateArticleDto extends PickType(ArticlesModel, [
   })
   @IsOptional()
   thumbnails?: string[] = [];
+
+  @IsOptional()
+  articleImage?: string;
 }

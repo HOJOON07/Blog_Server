@@ -55,7 +55,13 @@ export class ArticlesService {
       {
         relations: { author: true, thumbnails: true },
         select: {
-          author: { id: true, devName: true, position: true, location: true },
+          author: {
+            id: true,
+            devName: true,
+            position: true,
+            location: true,
+            image: true,
+          },
           commentCount: true,
           createdAt: true,
           description: true,
@@ -63,6 +69,7 @@ export class ArticlesService {
           likeCount: true,
           title: true,
           updatedAt: true,
+          articleImage: true,
         },
       },
       'articles',
@@ -126,6 +133,7 @@ export class ArticlesService {
           likeCount: true,
           commentCount: true,
           thumbnails: true,
+          articleImage: true,
         },
         where: {
           author: {
@@ -247,7 +255,7 @@ export class ArticlesService {
     if (article == undefined) {
       throw new NotFoundException();
     }
-    const { title, contents, description, isPrivate, isPublish, thumbnails } =
+    const { title, contents, description, isPrivate, isPublish, articleImage } =
       updateArticleDto;
     if (title) {
       article.title = title;
@@ -263,6 +271,10 @@ export class ArticlesService {
     }
     if (isPublish) {
       article.isPublish = isPublish;
+    }
+
+    if (articleImage) {
+      article.articleImage = articleImage;
     }
 
     const newArticle = await this.articlesRepository.save(article);
@@ -359,58 +371,5 @@ export class ArticlesService {
       throw new NotFoundException('아티클을 찾을 수 없습니다.');
     }
     return { author: articlesAuthor, articles };
-  }
-
-  async test() {
-    const where = {
-      isPrivate: 'open',
-      isPublish: 'publish',
-      title: {
-        _type: 'ilike',
-        _value: '%22%',
-        _useParameter: true,
-        _multipleParameters: false,
-        _getSql: undefined,
-        _objectLiteralParameters: undefined,
-      },
-      description: {
-        _type: 'ilike',
-        _value: '%22%',
-        _useParameter: true,
-        _multipleParameters: false,
-        _getSql: undefined,
-        _objectLiteralParameters: undefined,
-      },
-      author: { devName: 'test1' },
-    };
-
-    const orWhere = [
-      {
-        isPrivate: 'open',
-        isPublish: 'publish',
-        title: {
-          _type: 'ilike',
-          _value: '%22%',
-          _useParameter: true,
-          _multipleParameters: false,
-          _getSql: undefined,
-          _objectLiteralParameters: undefined,
-        },
-        author: { devName: 'test1' },
-      },
-      {
-        isPrivate: 'open',
-        isPublish: 'publish',
-        description: {
-          _type: 'ilike',
-          _value: '%22%',
-          _useParameter: true,
-          _multipleParameters: false,
-          _getSql: undefined,
-          _objectLiteralParameters: undefined,
-        },
-        author: { devName: 'test1' },
-      },
-    ];
   }
 }

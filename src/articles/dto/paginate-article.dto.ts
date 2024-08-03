@@ -23,6 +23,10 @@ export class PaginateArticleDto extends PickType(BasePaginationDto, [
 
   @IsString()
   @IsOptional()
+  where__description__i_like?: string;
+
+  @IsString()
+  @IsOptional()
   where__isPrivate: ArticlePrivateStateEnums = ArticlePrivateStateEnums.Open;
 
   @IsString()
