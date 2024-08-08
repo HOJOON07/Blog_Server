@@ -75,7 +75,6 @@ export class CommonService {
     mergeWithFindOptions.where = this.transformWhereToArray(
       mergeWithFindOptions.where,
     );
-    console.log(mergeWithFindOptions);
 
     // const [data, count] = await repository.findAndCount({
     //   ...findOptions,
@@ -117,7 +116,6 @@ export class CommonService {
     mergeWithFindOptions.where = this.transformWhereToArray(
       mergeWithFindOptions.where,
     );
-    console.log(mergeWithFindOptions);
 
     const results = await repository.find({
       ...mergeWithFindOptions,

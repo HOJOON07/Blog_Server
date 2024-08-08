@@ -40,6 +40,7 @@ const RAW_RUNTIME_STATE =
           ["@nestjs/platform-socket.io", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.10"],\
           ["@nestjs/schematics", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.1.1"],\
           ["@nestjs/serve-static", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:4.0.2"],\
+          ["@nestjs/terminus", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.2.3"],\
           ["@nestjs/testing", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.3"],\
           ["@nestjs/typeorm", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.0.2"],\
           ["@nestjs/websockets", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.10"],\
@@ -2885,6 +2886,94 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["@nestjs/terminus", [\
+      ["npm:10.2.3", {\
+        "packageLocation": "../../../.yarn/berry/cache/@nestjs-terminus-npm-10.2.3-4c8d8b4b50-10c0.zip/node_modules/@nestjs/terminus/",\
+        "packageDependencies": [\
+          ["@nestjs/terminus", "npm:10.2.3"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.2.3", {\
+        "packageLocation": "./.yarn/__virtual__/@nestjs-terminus-virtual-3ff47b19ad/4/.yarn/berry/cache/@nestjs-terminus-npm-10.2.3-4c8d8b4b50-10c0.zip/node_modules/@nestjs/terminus/",\
+        "packageDependencies": [\
+          ["@nestjs/terminus", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.2.3"],\
+          ["@grpc/grpc-js", null],\
+          ["@grpc/proto-loader", null],\
+          ["@mikro-orm/core", null],\
+          ["@mikro-orm/nestjs", null],\
+          ["@nestjs/axios", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:3.0.2"],\
+          ["@nestjs/common", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.3"],\
+          ["@nestjs/core", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.3"],\
+          ["@nestjs/microservices", null],\
+          ["@nestjs/mongoose", null],\
+          ["@nestjs/sequelize", null],\
+          ["@nestjs/typeorm", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.0.2"],\
+          ["@prisma/client", null],\
+          ["@types/grpc__grpc-js", null],\
+          ["@types/grpc__proto-loader", null],\
+          ["@types/mikro-orm__core", null],\
+          ["@types/mikro-orm__nestjs", null],\
+          ["@types/mongoose", null],\
+          ["@types/nestjs__axios", null],\
+          ["@types/nestjs__common", null],\
+          ["@types/nestjs__core", null],\
+          ["@types/nestjs__microservices", null],\
+          ["@types/nestjs__mongoose", null],\
+          ["@types/nestjs__sequelize", null],\
+          ["@types/nestjs__typeorm", null],\
+          ["@types/prisma__client", null],\
+          ["@types/reflect-metadata", null],\
+          ["@types/rxjs", null],\
+          ["@types/sequelize", null],\
+          ["@types/typeorm", null],\
+          ["boxen", "npm:5.1.2"],\
+          ["check-disk-space", "npm:3.4.0"],\
+          ["mongoose", null],\
+          ["reflect-metadata", "npm:0.2.1"],\
+          ["rxjs", "npm:7.8.1"],\
+          ["sequelize", null],\
+          ["typeorm", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:0.3.20"]\
+        ],\
+        "packagePeers": [\
+          "@grpc/grpc-js",\
+          "@grpc/proto-loader",\
+          "@mikro-orm/core",\
+          "@mikro-orm/nestjs",\
+          "@nestjs/axios",\
+          "@nestjs/common",\
+          "@nestjs/core",\
+          "@nestjs/microservices",\
+          "@nestjs/mongoose",\
+          "@nestjs/sequelize",\
+          "@nestjs/typeorm",\
+          "@prisma/client",\
+          "@types/grpc__grpc-js",\
+          "@types/grpc__proto-loader",\
+          "@types/mikro-orm__core",\
+          "@types/mikro-orm__nestjs",\
+          "@types/mongoose",\
+          "@types/nestjs__axios",\
+          "@types/nestjs__common",\
+          "@types/nestjs__core",\
+          "@types/nestjs__microservices",\
+          "@types/nestjs__mongoose",\
+          "@types/nestjs__sequelize",\
+          "@types/nestjs__typeorm",\
+          "@types/prisma__client",\
+          "@types/reflect-metadata",\
+          "@types/rxjs",\
+          "@types/sequelize",\
+          "@types/typeorm",\
+          "mongoose",\
+          "reflect-metadata",\
+          "rxjs",\
+          "sequelize",\
+          "typeorm"\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["@nestjs/testing", [\
       ["npm:10.3.3", {\
         "packageLocation": "../../../.yarn/berry/cache/@nestjs-testing-npm-10.3.3-d6f6d89369-10c0.zip/node_modules/@nestjs/testing/",\
@@ -4950,6 +5039,16 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["ansi-align", [\
+      ["npm:3.0.1", {\
+        "packageLocation": "../../../.yarn/berry/cache/ansi-align-npm-3.0.1-8e6288d20a-10c0.zip/node_modules/ansi-align/",\
+        "packageDependencies": [\
+          ["ansi-align", "npm:3.0.1"],\
+          ["string-width", "npm:4.2.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["ansi-colors", [\
       ["npm:4.1.3", {\
         "packageLocation": "../../../.yarn/berry/cache/ansi-colors-npm-4.1.3-8ffd0ae6c7-10c0.zip/node_modules/ansi-colors/",\
@@ -5440,6 +5539,23 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["boxen", [\
+      ["npm:5.1.2", {\
+        "packageLocation": "../../../.yarn/berry/cache/boxen-npm-5.1.2-364ee34f2f-10c0.zip/node_modules/boxen/",\
+        "packageDependencies": [\
+          ["boxen", "npm:5.1.2"],\
+          ["ansi-align", "npm:3.0.1"],\
+          ["camelcase", "npm:6.3.0"],\
+          ["chalk", "npm:4.1.2"],\
+          ["cli-boxes", "npm:2.2.1"],\
+          ["string-width", "npm:4.2.3"],\
+          ["type-fest", "npm:0.20.2"],\
+          ["widest-line", "npm:3.1.0"],\
+          ["wrap-ansi", "npm:7.0.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["brace-expansion", [\
       ["npm:1.1.11", {\
         "packageLocation": "../../../.yarn/berry/cache/brace-expansion-npm-1.1.11-fb95eb05ad-10c0.zip/node_modules/brace-expansion/",\
@@ -5704,6 +5820,15 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["check-disk-space", [\
+      ["npm:3.4.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/check-disk-space-npm-3.4.0-78a4169ea3-10c0.zip/node_modules/check-disk-space/",\
+        "packageDependencies": [\
+          ["check-disk-space", "npm:3.4.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["cheerio", [\
       ["npm:1.0.0-rc.12", {\
         "packageLocation": "../../../.yarn/berry/cache/cheerio-npm-1.0.0-rc.12-6785a97c2a-10c0.zip/node_modules/cheerio/",\
@@ -5824,6 +5949,15 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../.yarn/berry/cache/clean-stack-npm-2.2.0-a8ce435a5c-10c0.zip/node_modules/clean-stack/",\
         "packageDependencies": [\
           ["clean-stack", "npm:2.2.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["cli-boxes", [\
+      ["npm:2.2.1", {\
+        "packageLocation": "../../../.yarn/berry/cache/cli-boxes-npm-2.2.1-7125a5ba44-10c0.zip/node_modules/cli-boxes/",\
+        "packageDependencies": [\
+          ["cli-boxes", "npm:2.2.1"]\
         ],\
         "linkType": "HARD"\
       }]\
@@ -12456,6 +12590,7 @@ const RAW_RUNTIME_STATE =
           ["@nestjs/platform-socket.io", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.10"],\
           ["@nestjs/schematics", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.1.1"],\
           ["@nestjs/serve-static", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:4.0.2"],\
+          ["@nestjs/terminus", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.2.3"],\
           ["@nestjs/testing", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.3"],\
           ["@nestjs/typeorm", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.0.2"],\
           ["@nestjs/websockets", "virtual:48fd9d653646a991d0eda5ffe92778b72de446c151643ca5c3964e62f24bed64d28e19b09ae1edf82cd4ab484e9e16d2c4b4953045a3524fb9431546d36f4563#npm:10.3.10"],\
@@ -13987,6 +14122,16 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "../../../.yarn/berry/cache/wide-align-npm-1.1.5-889d77e592-10c0.zip/node_modules/wide-align/",\
         "packageDependencies": [\
           ["wide-align", "npm:1.1.5"],\
+          ["string-width", "npm:4.2.3"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["widest-line", [\
+      ["npm:3.1.0", {\
+        "packageLocation": "../../../.yarn/berry/cache/widest-line-npm-3.1.0-717bf2680b-10c0.zip/node_modules/widest-line/",\
+        "packageDependencies": [\
+          ["widest-line", "npm:3.1.0"],\
           ["string-width", "npm:4.2.3"]\
         ],\
         "linkType": "HARD"\

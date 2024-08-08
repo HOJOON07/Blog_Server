@@ -31,6 +31,7 @@ import { RolesGuard } from './users/guard/roles.guard';
 import { AccessTokenGuard } from './auth/guard/bearer-token.guard';
 import { UserFollowersModel } from './users/entities/user-followers.entity';
 import { AwsS3UploadModule } from './aws_s3_upload/aws_s3_upload.module';
+import { HealthCheckModule } from './health-check/health-check.module';
 
 @Module({
   imports: [
@@ -68,6 +69,7 @@ import { AwsS3UploadModule } from './aws_s3_upload/aws_s3_upload.module';
     ChatsModule,
     CommentsModule,
     AwsS3UploadModule,
+    HealthCheckModule,
   ],
   controllers: [AppController],
   providers: [
